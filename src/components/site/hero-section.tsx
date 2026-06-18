@@ -77,9 +77,9 @@ export function HeroSection({ scrollProgress, isMobile }: HeroSectionProps) {
               </p>
 
               <h1 className="font-bebas text-4xl leading-[0.95] tracking-wide text-white drop-shadow-[0_2px_12px_rgba(8,49,72,0.85)] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
-                Bienvenidos al Ecosistema Educativo Dr. Cristóbal Mendoza.
-                Transformación académica, robótica y alta tecnología para las nuevas
-                generaciones de Mérida y El Vigía
+                Complejo Educativo
+                <br />
+                Dr. Cristóbal Mendoza.
               </h1>
             </div>
 

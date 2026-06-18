@@ -91,8 +91,8 @@ export function getStaggeredRevealMotion(
   };
 }
 
-export function useSectionScrollReveal() {
-  const sectionRef = useRef<HTMLElement>(null);
+export function useSectionScrollReveal<T extends HTMLElement = HTMLElement>() {
+  const sectionRef = useRef<T>(null);
   const [progress, setProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const targetProgress = useRef(0);

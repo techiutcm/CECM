@@ -10,7 +10,7 @@ interface HeroBlockProps {
 }
 
 export function HeroBlock({ session = null }: HeroBlockProps) {
-  const { sectionRef, progress, isMobile } = useSectionScrollReveal();
+  const { sectionRef, progress, isMobile } = useSectionScrollReveal<HTMLDivElement>();
 
   return (
     <div
