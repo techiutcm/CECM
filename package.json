@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "tunnel:setup": "node scripts/setup-cloudflared.mjs",
+    "tunnel": "node scripts/tunnel.mjs",
+    "share": "node scripts/share-dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
