@@ -9,7 +9,7 @@ import Link from "next/link";
 const HERO_VIDEO_URL =
   "https://import.cdn.thinkific.com/371124%2Fcustom_site_themes%2Fid%2FK4cQEA03SeS9BWcQCUDg_video540p-230818-102825.gif";
 
-const WHATSAPP_NUMBER = "584146046735";
+const WHATSAPP_NUMBER = "584247800557";
 const WHATSAPP_MESSAGE =
   "hola vengo de la pagina web y estoy interesado en saber mas";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
@@ -38,28 +38,32 @@ export function HeroSection({ scrollProgress, isMobile }: HeroSectionProps) {
   const ctaMotion = getContentRevealMotion(scrollProgress, isMobile);
 
   return (
-    <section className="relative flex min-h-[88vh] items-center overflow-hidden sm:min-h-[92vh]">
+    <section className="relative flex min-h-[88vh] items-center overflow-hidden bg-[#083148] sm:min-h-[92vh]">
       <div
-        className="absolute inset-0 will-change-transform"
+        className="pointer-events-none absolute inset-0 overflow-hidden will-change-transform"
         style={{
           transform: backgroundMotion.transform,
+          transformOrigin: "center center",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={HERO_VIDEO_URL}
-          alt=""
-          aria-hidden
-          className="h-full w-full scale-105 object-cover"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(8,49,72,0.38) 45%, rgba(249,178,20,0.32) 100%)",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-white/25 via-transparent to-white/10" />
+        <div className="absolute -top-[14%] left-0 h-[128%] w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={HERO_VIDEO_URL}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.16) 0%, rgba(8,49,72,0.48) 45%, rgba(249,178,20,0.36) 100%)",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#083148]/70 via-[#083148]/15 to-white/10" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-[#083148]/45" />
+        </div>
       </div>
 
       <div className="relative z-10 w-full pb-16 pt-36 sm:pb-16 lg:pt-40">

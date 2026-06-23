@@ -51,3 +51,82 @@ body {
     0 22px 48px -18px color-mix(in srgb, var(--pillar-color) 48%, transparent);
   transform: translateY(-6px);
 }
+
+@keyframes ecosystem-levitate-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0);
+  }
+}
+
+@keyframes ecosystem-levitate-b {
+  0%,
+  100% {
+    transform: translate3d(0, -5px, 0);
+  }
+  50% {
+    transform: translate3d(0, 9px, 0);
+  }
+}
+
+@keyframes ecosystem-shadow-pulse-a {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.32;
+  }
+  50% {
+    transform: scaleX(0.82);
+    opacity: 0.18;
+  }
+}
+
+@keyframes ecosystem-shadow-pulse-b {
+  0%,
+  100% {
+    transform: scaleX(0.92);
+    opacity: 0.26;
+  }
+  50% {
+    transform: scaleX(1.05);
+    opacity: 0.34;
+  }
+}
+
+.ecosystem-levitate {
+  will-change: transform;
+}
+
+.ecosystem-levitate-a {
+  animation: ecosystem-levitate-a 5.2s ease-in-out infinite;
+}
+
+.ecosystem-levitate-b {
+  animation: ecosystem-levitate-b 4.6s ease-in-out infinite;
+  animation-delay: 0.9s;
+}
+
+.ecosystem-shadow-pulse {
+  will-change: transform, opacity;
+}
+
+.ecosystem-shadow-pulse-a {
+  animation: ecosystem-shadow-pulse-a 5.2s ease-in-out infinite;
+}
+
+.ecosystem-shadow-pulse-b {
+  animation: ecosystem-shadow-pulse-b 4.6s ease-in-out infinite;
+  animation-delay: 0.9s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecosystem-levitate-a,
+  .ecosystem-levitate-b,
+  .ecosystem-shadow-pulse-a,
+  .ecosystem-shadow-pulse-b {
+    animation: none;
+  }
+}

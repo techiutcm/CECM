@@ -57,7 +57,7 @@ export function getNavbarRevealMotion(
 
 export function getHeroBackgroundMotion(scrollProgress: number): RevealMotion {
   return {
-    transform: `translate3d(0, ${scrollProgress * -80}px, 0) scale(1.06)`,
+    transform: `translate3d(0, ${scrollProgress * -48}px, 0) scale(1.08)`,
     opacity: 1,
   };
 }

@@ -13,7 +13,7 @@ export function AdmissionStepper({ steps }: AdmissionStepperProps) {
         aria-hidden
       />
 
-      <ol className="grid grid-cols-1 gap-0 md:grid-cols-2 md:gap-x-8 md:gap-y-6 lg:grid-cols-4 lg:gap-4">
+      <ol className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-x-8 md:gap-y-6 lg:grid-cols-4 lg:gap-4">
         {steps.map((step, index) => (
           <AdmissionStepItem
             key={step.id}

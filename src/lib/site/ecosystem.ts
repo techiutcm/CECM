@@ -23,27 +23,50 @@ export interface EcosystemCard {
 
 export const ecosystemContent = {
   label: "Ecosistema Tecnológico",
-  title: "Donde las ideas se convierten en proyectos reales",
+  title: "Donde las ideas se convierten en",
+  titleAccent: "proyectos reales",
   cards: [
+    {
+      id: "preescolar",
+      title: "Educación Inicial (Preescolar)",
+      description:
+        "Transformamos la curiosidad natural en el primer laboratorio de las grandes ideas. Creamos un entorno seguro y estimulante donde el juego guiado activa el pensamiento lógico, la empatía y la fascinación por descubrir el mundo. Aquí comienza el viaje hacia el futuro.",
+      cta: { label: "Explora Preescolar" },
+      expanded: {
+        title: "Educación Inicial (Preescolar)",
+        intro:
+          "Estimulación temprana, familiarización con el entorno tecnológico mediante el juego y desarrollo de la motricidad fina y lógica básica.",
+        items: [
+          {
+            id: "juego-exploracion",
+            title: "Juego y exploración",
+            description:
+              "Actividades lúdicas que introducen el entorno tecnológico de forma natural y segura.",
+            icon: "crayons",
+            iconBg: "#F5B025",
+          },
+          {
+            id: "motricidad-logica",
+            title: "Motricidad y lógica básica",
+            description:
+              "Desarrollo de la motricidad fina y los primeros razonamientos a través del juego guiado.",
+            icon: "trophy",
+            iconBg: "#0A2533",
+          },
+        ],
+      },
+    },
     {
       id: "primary",
       title: "Educación Primaria",
       description:
-        "Exploración Lúdica y Pensamiento Lógico. Desde 1º hasta 6º grado, evolucionamos el aula en un laboratorio de descubrimiento donde la curiosidad natural guía el aprendizaje tecnológico.",
+        "Exploración lúdica y pensamiento lógico. Desde 1.° hasta 6.° grado, evolucionamos el aula en un laboratorio de descubrimiento donde la curiosidad natural guía el aprendizaje tecnológico.",
       cta: { label: "Explora el aula del futuro" },
       expanded: {
         title: "Exploración Lúdica y Pensamiento Lógico",
         intro:
           "Desde 1º hasta 6º grado, evolucionamos el aula en un laboratorio de descubrimiento donde la curiosidad natural guía el aprendizaje tecnológico.",
         items: [
-          {
-            id: "preescolar",
-            title: "Educación Inicial (Preescolar)",
-            description:
-              "Estimulación temprana, familiarización con el entorno tecnológico mediante el juego y desarrollo de la motricidad fina y lógica básica.",
-            icon: "crayons",
-            iconBg: "#F5B025",
-          },
           {
             id: "primero-tercero",
             title: "1º a 3º Grado",
@@ -66,7 +89,8 @@ export const ecosystemContent = {
     {
       id: "media-general",
       title: "Media General:",
-      description: "Excelencia técnica",
+      description:
+        "Convertimos el aula en un centro de innovación de alta competencia donde la Inteligencia Artificial, la economía digital y la ciencia aeroespacial se fusionan con el liderazgo humano. No formamos estudiantes para el mañana; entrenamos a los líderes tecnológicos del presente.",
       cta: { label: "Explora Media General" },
       expanded: {
         title: "Media General",

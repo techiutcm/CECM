@@ -1,6 +1,7 @@
 "use client";
 
 import { EcosystemCardsPanel } from "@/components/site/ecosystem-cards-panel";
+import { EcosystemDecor, EcosystemVrBoyMobile } from "@/components/site/ecosystem-decor";
 import { SiteContainer } from "@/components/site/site-container";
 import {
   getContentRevealMotion,
@@ -8,7 +9,7 @@ import {
   getTextRevealMotion,
   useSectionScrollReveal,
 } from "@/hooks/use-section-scroll-reveal";
-import { techEcosystemGridStyle } from "@/lib/site/section-styles";
+import { ecosystemSectionStyle } from "@/lib/site/section-styles";
 import { ecosystemContent } from "@/lib/site/ecosystem";
 
 export function EcosystemSection() {
@@ -17,14 +18,17 @@ export function EcosystemSection() {
   const dividerMotion = getContentRevealMotion(progress, isMobile);
 
   const cardsMotion = getStaggeredRevealMotion(progress, isMobile, 0);
+  const decorOpacity = Math.min(1, progress * 1.2 + 0.15);
 
   return (
     <section
       ref={sectionRef}
       className="relative overflow-hidden py-16 sm:py-20 lg:py-24"
-      style={techEcosystemGridStyle}
+      style={ecosystemSectionStyle}
     >
-      <SiteContainer>
+      <EcosystemDecor scrollOpacity={decorOpacity} />
+
+      <SiteContainer className="relative z-10">
         <header
           className="will-change-transform"
           style={{
@@ -36,7 +40,8 @@ export function EcosystemSection() {
             {ecosystemContent.label}
           </span>
           <h2 className="font-bebas mt-5 max-w-5xl text-4xl uppercase leading-[0.92] tracking-wide text-[#0A2533] sm:text-5xl lg:text-6xl xl:text-7xl">
-            {ecosystemContent.title}
+            {ecosystemContent.title}{" "}
+            <span className="text-[#F9B214]">{ecosystemContent.titleAccent}</span>
           </h2>
         </header>
 
@@ -58,6 +63,8 @@ export function EcosystemSection() {
           <EcosystemCardsPanel cards={ecosystemContent.cards} />
         </div>
       </SiteContainer>
+
+      <EcosystemVrBoyMobile scrollOpacity={decorOpacity} />
     </section>
   );
 }

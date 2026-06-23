@@ -86,7 +86,7 @@ export const sedes: SedeInfo[] = [
     id: "el-vigia",
     name: "Sede El Vigía",
     location:
-      "Avenida Bolivar N° 19-12 cruce con calle 3 Sector Coco Frío diagonal al Hospital II El Vigía",
+      "Av Bolivar , Esquina Calle 3, Edificio IUTCM N° 19-12 , Sector Coco Frio diagonal al Hospital II de El Vigía",
     levels: "Preescolar · Primaria · Media General",
     description:
       "Campus central con aulas tecnológicas, laboratorios de robótica, espacios deportivos y zonas de innovación para proyectos estudiantiles.",
@@ -95,7 +95,7 @@ export const sedes: SedeInfo[] = [
     id: "merida",
     name: "Sede Merida",
     location:
-      "Avenida Urdaneta N°43-205, 200 metros abajo del aeropuerto Alberto Carnevali",
+      "Av . Urdaneta , Edificio IUTCM a 100 metros de la entrada del Aeropuerto Alberto Carnevalli .",
     levels: "Preescolar · Primaria · Media General",
     description:
       "Campus central con aulas tecnológicas, laboratorios de robótica, espacios deportivos y zonas de innovación para proyectos estudiantiles.",
