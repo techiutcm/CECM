@@ -5,7 +5,9 @@ import {
   updateInterviewStatusAction,
 } from "@/app/admin/actions/admissions";
 import { Button } from "@/components/ui/button";
+import { EmailPreviewPanel } from "@/components/admin/email-preview-panel";
 import { useToast } from "@/components/ui/toast";
+import { buildInterviewEmailPreviewFromRow } from "@/lib/email/admission-preview";
 import type { InterviewRow } from "@/lib/admissions/admin/types";
 import { formatDateTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils";
@@ -95,6 +97,11 @@ export function InterviewsCalendar({ interviews }: InterviewsCalendarProps) {
   const [isPending, startTransition] = useTransition();
 
   const selectedInterview = interviews.find((item) => item.id === selectedId) ?? null;
+
+  const interviewEmailPreview = useMemo(() => {
+    if (!selectedInterview) return null;
+    return buildInterviewEmailPreviewFromRow(selectedInterview);
+  }, [selectedInterview]);
 
   const interviewsByDay = useMemo(() => {
     const map = new Map<string, InterviewRow[]>();
@@ -380,6 +387,15 @@ export function InterviewsCalendar({ interviews }: InterviewsCalendarProps) {
                 />
                 {selectedInterview.notes && (
                   <DetailItem label="Observaciones" value={selectedInterview.notes} />
+                )}
+
+                {interviewEmailPreview && (
+                  <EmailPreviewPanel
+                    to={interviewEmailPreview.to}
+                    subject={interviewEmailPreview.subject}
+                    html={interviewEmailPreview.html}
+                    title="Vista previa del correo"
+                  />
                 )}
 
                 <div className="flex flex-wrap gap-2 pt-2">

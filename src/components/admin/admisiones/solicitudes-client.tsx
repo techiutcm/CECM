@@ -20,7 +20,7 @@ export function SolicitudesClient({ initialItems }: SolicitudesClientProps) {
     status: "all",
     grade: "all",
     shift: "all",
-    sameSchool: "all",
+    provenance: "all",
     dateFrom: "",
     dateTo: "",
   });
@@ -30,6 +30,7 @@ export function SolicitudesClient({ initialItems }: SolicitudesClientProps) {
       if (filters.status !== "all" && item.status !== filters.status) return false;
       if (filters.grade !== "all" && item.grade !== filters.grade) return false;
       if (filters.shift !== "all" && item.shift !== filters.shift) return false;
+      if (filters.provenance !== "all" && item.provenance !== filters.provenance) return false;
       if (filters.dateFrom && item.createdAt < filters.dateFrom) return false;
       if (filters.dateTo && item.createdAt > `${filters.dateTo}T23:59:59`) return false;
       if (filters.search.trim()) {

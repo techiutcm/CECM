@@ -1,7 +1,6 @@
 import { CommentForm } from "@/components/blog/comment-form";
 import { CommentList } from "@/components/blog/comment-list";
-import { MarkdownContent } from "@/components/blog/markdown-content";
-import { SiteHeader } from "@/components/blog/site-header";
+import { PostContent } from "@/components/blog/post-content";
 import { getAuthUser } from "@/lib/api/auth";
 import {
   buildBlogListUrl,
@@ -9,7 +8,6 @@ import {
   getPublishedPostBySlug,
 } from "@/lib/blog/public";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -52,9 +50,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const approvedComments = await getApprovedComments(post.id);
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <SiteHeader />
-
+    <>
       <article className="mx-auto max-w-3xl px-6 py-10">
         <Link
           href="/blog"
@@ -101,21 +97,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           )}
         </header>
 
-        {post.cover_image_url && (
-          <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-2xl bg-zinc-100">
-            <Image
-              src={post.cover_image_url}
-              alt={post.title}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 768px) 100vw, 768px"
-            />
-          </div>
-        )}
-
         <div className="mt-10 border-t border-zinc-200 pt-10">
-          <MarkdownContent content={post.content} />
+          <PostContent content={post.content} />
         </div>
       </article>
 
@@ -137,6 +120,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

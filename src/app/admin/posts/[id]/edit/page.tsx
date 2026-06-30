@@ -32,11 +32,11 @@ export default async function EditPostPage({
       />
       <div className="flex-1 p-8">
         {created === "1" && (
-          <div className="mx-auto mb-4 max-w-3xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="mx-auto mb-4 max-w-6xl rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
             Post creado. Puedes seguir editándolo aquí.
           </div>
         )}
-        <div className="mx-auto max-w-3xl rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <div className="mx-auto max-w-6xl rounded-xl border border-zinc-200 bg-white p-6 shadow-sm lg:p-8">
           <PostForm post={post} tags={tags} />
         </div>
       </div>

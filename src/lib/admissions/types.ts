@@ -1,11 +1,15 @@
 import type {
   ADMISSION_GRADES,
+  ADMISSION_PROVENANCE_VALUES,
   ADMISSION_SHIFTS,
+  NATIONAL_ID_PREFIXES,
   TUTOR_RELATIONSHIPS,
 } from "@/lib/admissions/constants";
 
 export type AdmissionGrade = (typeof ADMISSION_GRADES)[number];
 export type AdmissionShift = (typeof ADMISSION_SHIFTS)[number];
+export type AdmissionProvenance = (typeof ADMISSION_PROVENANCE_VALUES)[number];
+export type NationalIdPrefix = (typeof NATIONAL_ID_PREFIXES)[number];
 export type TutorRelationship = (typeof TUTOR_RELATIONSHIPS)[number];
 
 export interface UploadedDocument {
@@ -20,7 +24,9 @@ export interface AdmissionFormValues {
   personal: {
     firstName: string;
     lastName: string;
-    nationalId: string;
+    nationalIdPrefix: NationalIdPrefix;
+    nationalIdNumber: string;
+    nationalId?: string;
     birthDate: string;
     phone: string;
     address: string;
@@ -28,8 +34,12 @@ export interface AdmissionFormValues {
   academic: {
     grade: AdmissionGrade | "";
     shift: AdmissionShift | "";
-    sameSchool: boolean;
+    provenance: AdmissionProvenance | "";
+    /** Campo legado; solo para solicitudes anteriores al cambio de procedencia. */
+    sameSchool?: boolean;
     previousSchool?: string;
+    academicPerformance: string;
+    /** Campo legado; solo para solicitudes anteriores. */
     previousAverage?: string;
     repeatedGrade: "yes" | "no" | "";
   };
@@ -37,7 +47,9 @@ export interface AdmissionFormValues {
     relationship: TutorRelationship | "";
     firstName: string;
     lastName: string;
-    nationalId: string;
+    nationalIdPrefix: NationalIdPrefix;
+    nationalIdNumber: string;
+    nationalId?: string;
     phone: string;
     email: string;
     occupation: string;

@@ -28,7 +28,7 @@ function mapRowToListItem(row: AdmissionRow): AdmissionListItem {
     shift: academic.shift || "—",
     representativeName: `${tutor.firstName} ${tutor.lastName}`.trim(),
     representativePhone: tutor.phone,
-    sameSchool: academic.sameSchool,
+    provenance: academic.provenance || "",
     previousSchool: academic.previousSchool,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -53,8 +53,14 @@ function applyFilters(rows: AdmissionRow[], filters?: AdmissionFilters) {
       return false;
     }
 
-    if (filters.sameSchool !== undefined && filters.sameSchool !== "all") {
-      if (row.academic_data.sameSchool !== filters.sameSchool) return false;
+    if (filters.provenance && filters.provenance !== "all") {
+      const rowProvenance = row.academic_data.provenance;
+      const legacyMatch =
+        !rowProvenance &&
+        filters.provenance === "nacional" &&
+        row.academic_data.sameSchool === true;
+
+      if (rowProvenance !== filters.provenance && !legacyMatch) return false;
     }
 
     if (filters.dateFrom && row.created_at < filters.dateFrom) return false;

@@ -12,8 +12,9 @@ const HEADERS = [
   "Email",
   "Estado",
   "Fecha solicitud",
+  "Procedencia",
   "Escuela procedencia",
-  "Promedio",
+  "Rendimiento académico",
   "Repitió grado",
 ] as const;
 
@@ -31,8 +32,9 @@ export function buildAdmissionsExcelBuffer(rows: AdmissionExportRow[]) {
       row.emailRepresentante,
       row.estado,
       row.fechaSolicitud,
+      row.procedencia,
       row.escuelaProcedencia,
-      row.promedio,
+      row.rendimientoAcademico,
       row.repitioGrado,
     ]),
   ];
@@ -49,6 +51,7 @@ export function buildAdmissionsExcelBuffer(rows: AdmissionExportRow[]) {
     { wch: 28 },
     { wch: 22 },
     { wch: 20 },
+    { wch: 22 },
     { wch: 24 },
     { wch: 10 },
     { wch: 12 },

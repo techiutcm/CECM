@@ -20,6 +20,18 @@ export const ADMISSION_GRADES = [
 
 export const ADMISSION_SHIFTS = ["Mañana", "Tarde"] as const;
 
+export const NATIONAL_ID_PREFIXES = ["V", "E"] as const;
+
+export const ADMISSION_PROVENANCE_VALUES = ["nacional", "extranjera"] as const;
+
+export const ADMISSION_PROVENANCE_LABELS: Record<
+  (typeof ADMISSION_PROVENANCE_VALUES)[number],
+  string
+> = {
+  nacional: "Procedencia Nacional",
+  extranjera: "Procedencia Extranjera",
+};
+
 export const TUTOR_RELATIONSHIPS = [
   "Padre",
   "Madre",
@@ -64,7 +76,8 @@ export const ADMISSION_STEP_FIELDS = {
   1: [
     "personal.firstName",
     "personal.lastName",
-    "personal.nationalId",
+    "personal.nationalIdPrefix",
+    "personal.nationalIdNumber",
     "personal.birthDate",
     "personal.phone",
     "personal.address",
@@ -72,16 +85,17 @@ export const ADMISSION_STEP_FIELDS = {
   2: [
     "academic.grade",
     "academic.shift",
-    "academic.sameSchool",
+    "academic.provenance",
     "academic.previousSchool",
-    "academic.previousAverage",
+    "academic.academicPerformance",
     "academic.repeatedGrade",
   ],
   3: [
     "tutor.relationship",
     "tutor.firstName",
     "tutor.lastName",
-    "tutor.nationalId",
+    "tutor.nationalIdPrefix",
+    "tutor.nationalIdNumber",
     "tutor.phone",
     "tutor.email",
     "tutor.occupation",

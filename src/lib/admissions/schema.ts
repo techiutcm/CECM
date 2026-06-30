@@ -1,11 +1,28 @@
+import { normalizeAdmissionShift } from "@/lib/admissions/shifts";
+import {
+  normalizeAcademicPerformance,
+  validateAcademicPerformance,
+} from "@/lib/admissions/academic-performance";
+import { normalizeBirthDateToIso, validateBirthDateIso } from "@/lib/admissions/birth-date";
+import {
+  formatNationalId,
+  formatNationalIdDisplay,
+  validateRequiredNationalId,
+  validateStudentNationalId,
+} from "@/lib/admissions/national-id";
 import type { AdmissionFormValues } from "@/lib/admissions/types";
 import { z } from "zod";
 import {
   ADMISSION_GRADES,
+  ADMISSION_PROVENANCE_VALUES,
   ADMISSION_SHIFTS,
   MAX_DOCUMENT_SIZE_BYTES,
   TUTOR_RELATIONSHIPS,
 } from "@/lib/admissions/constants";
+
+const nationalIdPrefixField = z.enum(["V", "E"], {
+  message: "Selecciona el prefijo V o E",
+});
 
 const nameField = z
   .string()
@@ -13,12 +30,6 @@ const nameField = z
   .min(2, "Ingresa al menos 2 caracteres")
   .max(80, "Máximo 80 caracteres");
 
-const nationalIdField = z
-  .string()
-  .trim()
-  .min(6, "Ingresa una cédula válida")
-  .max(12, "Máximo 12 caracteres")
-  .regex(/^[VEJPG]-?\d{6,9}$/i, "Formato: V-12345678");
 
 const phoneField = z
   .string()
@@ -35,17 +46,40 @@ export const uploadedDocumentSchema = z.object({
   size: z.number().max(MAX_DOCUMENT_SIZE_BYTES),
 });
 
-export const personalStepSchema = z.object({
-  firstName: nameField,
-  lastName: nameField,
-  nationalId: nationalIdField,
-  birthDate: z
-    .string()
-    .min(1, "Selecciona la fecha de nacimiento")
-    .refine((value) => !Number.isNaN(Date.parse(value)), "Fecha inválida"),
-  phone: phoneField,
-  address: z.string().trim().min(8, "Ingresa la dirección completa").max(200),
-});
+export const personalStepSchema = z
+  .object({
+    firstName: nameField,
+    lastName: nameField,
+    nationalIdPrefix: nationalIdPrefixField,
+    nationalIdNumber: z.string().trim(),
+    nationalId: z.string().trim().optional(),
+    birthDate: z
+      .string()
+      .min(1, "Ingresa la fecha de nacimiento")
+      .transform((value) => normalizeBirthDateToIso(value) ?? value)
+      .superRefine((value, ctx) => {
+        const message = validateBirthDateIso(value);
+        if (message) {
+          ctx.addIssue({ code: "custom", message });
+        }
+      }),
+    phone: phoneField,
+    address: z.string().trim().min(8, "Ingresa la dirección completa").max(200),
+  })
+  .superRefine((data, ctx) => {
+    const message = validateStudentNationalId("", data.nationalIdPrefix, data.nationalIdNumber);
+    if (message) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["nationalIdNumber"],
+        message,
+      });
+    }
+  })
+  .transform((data) => ({
+    ...data,
+    nationalId: formatNationalId(data.nationalIdPrefix, data.nationalIdNumber),
+  }));
 
 export const academicStepSchema = z
   .object({
@@ -57,52 +91,83 @@ export const academicStepSchema = z
       .string()
       .min(1, "Selecciona el turno")
       .pipe(z.enum(ADMISSION_SHIFTS)),
-    sameSchool: z.boolean(),
+    provenance: z
+      .string()
+      .min(1, "Selecciona la procedencia")
+      .pipe(z.enum(ADMISSION_PROVENANCE_VALUES)),
     previousSchool: z.string().trim().optional(),
-    previousAverage: z.string().trim().optional(),
+    academicPerformance: z.string().trim().optional(),
     repeatedGrade: z
       .string()
       .min(1, "Selecciona una opción")
       .pipe(z.enum(["yes", "no"])),
   })
   .superRefine((data, ctx) => {
-    if (!data.sameSchool) {
-      if (!data.previousSchool?.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["previousSchool"],
-          message: "Ingresa la escuela de procedencia",
-        });
-      }
-      if (!data.previousAverage?.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["previousAverage"],
-          message: "Ingresa el promedio de procedencia",
-        });
-      } else if (!/^\d{1,2}([.,]\d{1,2})?$/.test(data.previousAverage)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["previousAverage"],
-          message: "Promedio inválido (ej: 18.5)",
-        });
-      }
+    if (!data.previousSchool?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["previousSchool"],
+        message: "Ingresa la escuela de procedencia",
+      });
     }
+
+    const performanceValue =
+      data.academicPerformance?.trim() || (data as { previousAverage?: string }).previousAverage?.trim() || "";
+    const performanceError = validateAcademicPerformance(data.grade, performanceValue);
+
+    if (performanceError) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["academicPerformance"],
+        message: performanceError,
+      });
+    }
+  })
+  .transform((data) => {
+    const raw =
+      data.academicPerformance?.trim() ||
+      (data as { previousAverage?: string }).previousAverage?.trim() ||
+      "";
+    const normalized = normalizeAcademicPerformance(data.grade, raw);
+    const shift = normalizeAdmissionShift(data.shift);
+
+    return {
+      ...data,
+      shift: shift || data.shift,
+      academicPerformance: normalized ?? "",
+    };
   });
 
-export const tutorStepSchema = z.object({
-  relationship: z
-    .string()
-    .min(1, "Selecciona la relación")
-    .pipe(z.enum(TUTOR_RELATIONSHIPS)),
-  firstName: nameField,
-  lastName: nameField,
-  nationalId: nationalIdField,
-  phone: phoneField,
-  email: z.string().trim().email("Correo electrónico inválido"),
-  occupation: z.string().trim().min(2, "Ingresa la ocupación").max(100),
-  address: z.string().trim().min(8, "Ingresa la dirección completa").max(200),
-});
+export const tutorStepSchema = z
+  .object({
+    relationship: z
+      .string()
+      .min(1, "Selecciona la relación")
+      .pipe(z.enum(TUTOR_RELATIONSHIPS)),
+    firstName: nameField,
+    lastName: nameField,
+    nationalIdPrefix: nationalIdPrefixField,
+    nationalIdNumber: z.string().trim(),
+    nationalId: z.string().trim().optional(),
+    phone: phoneField,
+    email: z.string().trim().email("Correo electrónico inválido"),
+    occupation: z.string().trim().min(2, "Ingresa la ocupación").max(100),
+    address: z.string().trim().min(8, "Ingresa la dirección completa").max(200),
+  })
+  .superRefine((data, ctx) => {
+    const message = validateRequiredNationalId(data.nationalIdPrefix, data.nationalIdNumber);
+    if (message) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["nationalIdNumber"],
+        message,
+      });
+    }
+  })
+  .transform((data) => ({
+    ...data,
+    nationalId: formatNationalId(data.nationalIdPrefix, data.nationalIdNumber),
+  }));
 
 export const documentsStepSchema = z.object({
   birthCertificate: uploadedDocumentSchema,
@@ -139,12 +204,28 @@ export const admissionFormSchema = z.object({
 
 export type AdmissionFormSchema = z.infer<typeof admissionFormSchema>;
 
-export const admissionSubmitSchema = z.object({
-  personal: personalStepSchema,
-  academic: academicStepSchema,
-  tutor: tutorStepSchema,
-  documents: documentsStepSchema,
-});
+export const admissionSubmitSchema = z
+  .object({
+    personal: personalStepSchema,
+    academic: academicStepSchema,
+    tutor: tutorStepSchema,
+    documents: documentsStepSchema,
+  })
+  .superRefine((data, ctx) => {
+    const message = validateStudentNationalId(
+      data.academic.grade,
+      data.personal.nationalIdPrefix,
+      data.personal.nationalIdNumber,
+    );
+
+    if (message) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["personal", "nationalIdNumber"],
+        message,
+      });
+    }
+  });
 
 export const admissionStepSchemas = {
   1: z.object({ personal: personalStepSchema }),
@@ -160,6 +241,8 @@ export function getDefaultAdmissionValues(): AdmissionFormValues {
     personal: {
       firstName: "",
       lastName: "",
+      nationalIdPrefix: "V",
+      nationalIdNumber: "",
       nationalId: "",
       birthDate: "",
       phone: "",
@@ -168,15 +251,17 @@ export function getDefaultAdmissionValues(): AdmissionFormValues {
     academic: {
       grade: "",
       shift: "",
-      sameSchool: false,
+      provenance: "",
       previousSchool: "",
-      previousAverage: "",
+      academicPerformance: "",
       repeatedGrade: "",
     },
     tutor: {
       relationship: "",
       firstName: "",
       lastName: "",
+      nationalIdPrefix: "V",
+      nationalIdNumber: "",
       nationalId: "",
       phone: "",
       email: "",

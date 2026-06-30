@@ -1,25 +1,25 @@
 "use client";
 
+import { AcademicPerformanceField } from "@/components/admissions/academic-performance-field";
 import { FormField } from "@/components/admissions/form-field";
+import { FormSelectField } from "@/components/admissions/form-select-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import {
   ADMISSION_GRADES,
-  ADMISSION_SHIFTS,
+  ADMISSION_PROVENANCE_LABELS,
+  ADMISSION_PROVENANCE_VALUES,
 } from "@/lib/admissions/constants";
+import { ADMISSION_SHIFT_OPTIONS } from "@/lib/admissions/shifts";
 import type { AdmissionFormValues } from "@/lib/admissions/types";
-import { GraduationCap, School } from "lucide-react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { Globe, GraduationCap, School } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 
 export function StepAcademic() {
   const {
     register,
-    control,
     formState: { errors },
   } = useFormContext<AdmissionFormValues>();
-
-  const sameSchool = useWatch({ control, name: "academic.sameSchool" });
 
   return (
     <div className="space-y-6">
@@ -33,71 +33,54 @@ export function StepAcademic() {
       </header>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <FormField label="Grado a cursar" htmlFor="academic.grade" error={errors.academic?.grade?.message} icon={GraduationCap}>
-          <Select id="academic.grade" defaultValue="" {...register("academic.grade")}>
-            <option value="" disabled>
-              Seleccione
-            </option>
-            {ADMISSION_GRADES.map((grade) => (
-              <option key={grade} value={grade}>
-                {grade}
-              </option>
-            ))}
-          </Select>
-        </FormField>
+        <FormSelectField
+          name="academic.grade"
+          id="academic.grade"
+          label="Grado a cursar"
+          placeholder="Seleccione el grado"
+          options={ADMISSION_GRADES}
+          error={errors.academic?.grade?.message}
+          icon={GraduationCap}
+        />
 
-        <FormField label="Turno" htmlFor="academic.shift" error={errors.academic?.shift?.message} icon={School}>
-          <Select id="academic.shift" defaultValue="" {...register("academic.shift")}>
-            <option value="" disabled>
-              Seleccione
-            </option>
-            {ADMISSION_SHIFTS.map((shift) => (
-              <option key={shift} value={shift}>
-                {shift}
-              </option>
-            ))}
-          </Select>
-        </FormField>
+        <FormSelectField
+          name="academic.shift"
+          id="academic.shift"
+          label="Turno"
+          placeholder="Seleccione el turno"
+          options={ADMISSION_SHIFT_OPTIONS}
+          error={errors.academic?.shift?.message}
+          icon={School}
+        />
+
+        <FormSelectField
+          name="academic.provenance"
+          id="academic.provenance"
+          label="Procedencia"
+          placeholder="Seleccione la procedencia"
+          options={ADMISSION_PROVENANCE_VALUES.map((value) => ({
+            value,
+            label: ADMISSION_PROVENANCE_LABELS[value],
+          }))}
+          error={errors.academic?.provenance?.message}
+          icon={Globe}
+          className="sm:col-span-2"
+        />
       </div>
 
-      <label className="flex items-start gap-3 rounded-2xl border border-[#083148]/10 bg-white/70 p-4">
-        <input
-          type="checkbox"
-          className="mt-1 h-4 w-4 rounded border-[#083148]/20 text-[#083148] focus:ring-[#083148]/20"
-          {...register("academic.sameSchool")}
-        />
-        <span>
-          <span className="font-montserrat block text-sm font-semibold text-[#083148]">
-            Procede del mismo colegio
-          </span>
-          <span className="font-montserrat mt-1 block text-sm text-[#083148]/65">
-            Si marca esta opción, no necesitamos la escuela ni el promedio de procedencia.
-          </span>
-        </span>
-      </label>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <FormField
+          label="Escuela de Procedencia"
+          htmlFor="academic.previousSchool"
+          error={errors.academic?.previousSchool?.message}
+          icon={School}
+          className="sm:col-span-2"
+        >
+          <Input id="academic.previousSchool" {...register("academic.previousSchool")} />
+        </FormField>
 
-      {!sameSchool && (
-        <div className="grid gap-5 sm:grid-cols-2">
-          <FormField
-            label="Escuela de Procedencia"
-            htmlFor="academic.previousSchool"
-            error={errors.academic?.previousSchool?.message}
-            icon={School}
-            className="sm:col-span-2"
-          >
-            <Input id="academic.previousSchool" {...register("academic.previousSchool")} />
-          </FormField>
-
-          <FormField
-            label="Promedio de Procedencia"
-            htmlFor="academic.previousAverage"
-            error={errors.academic?.previousAverage?.message}
-            icon={GraduationCap}
-          >
-            <Input id="academic.previousAverage" placeholder="18.5" {...register("academic.previousAverage")} />
-          </FormField>
-        </div>
-      )}
+        <AcademicPerformanceField />
+      </div>
 
       <fieldset className="space-y-3">
         <Label>¿Repitió algún grado?</Label>

@@ -1,9 +1,11 @@
 "use client";
 
+import { StudentNationalIdField } from "@/components/admissions/national-id-field";
+import { BirthDateField } from "@/components/admissions/birth-date-field";
 import { FormField } from "@/components/admissions/form-field";
 import { Input } from "@/components/ui/input";
 import type { AdmissionFormValues } from "@/lib/admissions/types";
-import { Calendar, Hash, Home, Phone, User } from "lucide-react";
+import { Calendar, Home, Phone, User } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
 export function StepPersonal() {
@@ -32,12 +34,15 @@ export function StepPersonal() {
           <Input id="personal.lastName" autoComplete="family-name" {...register("personal.lastName")} />
         </FormField>
 
-        <FormField label="Cédula" htmlFor="personal.nationalId" error={errors.personal?.nationalId?.message} icon={Hash}>
-          <Input id="personal.nationalId" placeholder="V-12345678" {...register("personal.nationalId")} />
-        </FormField>
+        <StudentNationalIdField />
 
-        <FormField label="Fecha de Nacimiento" htmlFor="personal.birthDate" error={errors.personal?.birthDate?.message} icon={Calendar}>
-          <Input id="personal.birthDate" type="date" {...register("personal.birthDate")} />
+        <FormField
+          label="Fecha de Nacimiento"
+          htmlFor="personal.birthDate"
+          error={errors.personal?.birthDate?.message}
+          icon={Calendar}
+        >
+          <BirthDateField />
         </FormField>
 
         <FormField label="Teléfono" htmlFor="personal.phone" error={errors.personal?.phone?.message} icon={Phone}>

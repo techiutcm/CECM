@@ -5,7 +5,7 @@ import {
   ADMISSION_STATUS_LABELS,
   type AdmissionStatus,
 } from "@/lib/admissions/admin/constants";
-import { sendInterviewScheduledEmail } from "@/lib/email/resend";
+import { sendAdmissionRejectedEmail, sendInterviewScheduledEmail } from "@/lib/email/resend";
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
 
@@ -91,6 +91,63 @@ export async function addAdmissionNoteAction(admissionId: string, content: strin
 
   revalidatePath("/admin/admisiones/solicitudes");
   return { success: true };
+}
+
+export async function rejectAdmissionAction(input: {
+  admissionId: string;
+  note?: string;
+  sendNotification?: boolean;
+}) {
+  const supabase = createServiceClient();
+
+  const { data: admission, error: admissionError } = await supabase
+    .from("admissions")
+    .select("student_data, academic_data, tutor_data, status")
+    .eq("id", input.admissionId)
+    .single();
+
+  if (admissionError) return { error: admissionError.message };
+
+  const statusResult = await updateAdmissionStatusAction(
+    input.admissionId,
+    "rechazado",
+    input.note ?? "Solicitud rechazada desde el panel administrativo",
+  );
+
+  if (statusResult.error) return statusResult;
+
+  let notificationMessage: string | undefined;
+
+  if (input.sendNotification) {
+    const student = admission.student_data as {
+      firstName: string;
+      lastName: string;
+    };
+    const academic = admission.academic_data as { grade?: string };
+    const tutor = admission.tutor_data as {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+
+    const emailResult = await sendAdmissionRejectedEmail({
+      to: tutor.email,
+      representativeName: `${tutor.firstName} ${tutor.lastName}`.trim(),
+      studentName: `${student.firstName} ${student.lastName}`.trim(),
+      grade: academic.grade ?? "—",
+      reason: input.note,
+    });
+
+    if (emailResult.sent) {
+      notificationMessage = "Notificación de rechazo enviada por correo.";
+    } else {
+      notificationMessage = emailResult.reason ?? "Correo no enviado.";
+    }
+  }
+
+  revalidatePath("/admin/admisiones");
+  revalidatePath("/admin/admisiones/solicitudes");
+  return { success: true, notificationMessage };
 }
 
 export async function scheduleInterviewAction(input: {

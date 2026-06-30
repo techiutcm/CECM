@@ -18,7 +18,9 @@ import {
   ADMISSION_STEP_FIELDS,
   ADMISSION_TOTAL_STEPS,
 } from "@/lib/admissions/constants";
-import type { AdmissionFormValues } from "@/lib/admissions/types";
+import { normalizeAdmissionShift } from "@/lib/admissions/shifts";
+import type { AdmissionFormValues, AdmissionShift } from "@/lib/admissions/types";
+import { validateStudentNationalId } from "@/lib/admissions/national-id";
 import {
   admissionStepSchemas,
   admissionSubmitSchema,
@@ -56,7 +58,14 @@ export function AdmissionWizard() {
 
   useEffect(() => {
     if (!isHydrated || hasHydratedRef.current) return;
-    form.reset(draft.values);
+    const hydratedValues = {
+      ...draft.values,
+      academic: {
+        ...draft.values.academic,
+        shift: (normalizeAdmissionShift(draft.values.academic.shift) || "") as AdmissionShift | "",
+      },
+    };
+    form.reset(hydratedValues);
     setCurrentStep(draft.currentStep);
     hasHydratedRef.current = true;
 
@@ -113,6 +122,26 @@ export function AdmissionWizard() {
         variant: "error",
       });
       return false;
+    }
+
+    if (currentStep === 2) {
+      const { academic, personal } = form.getValues();
+      const nationalIdError = validateStudentNationalId(
+        academic.grade,
+        personal.nationalIdPrefix,
+        personal.nationalIdNumber,
+      );
+
+      if (nationalIdError) {
+        form.setError("personal.nationalIdNumber", { message: nationalIdError });
+        await form.trigger(["personal.nationalIdPrefix", "personal.nationalIdNumber"] as never);
+        toast({
+          title: "Revisa la cédula del estudiante",
+          description: nationalIdError,
+          variant: "error",
+        });
+        return false;
+      }
     }
 
     return true;

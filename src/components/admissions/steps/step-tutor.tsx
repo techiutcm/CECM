@@ -1,11 +1,12 @@
 "use client";
 
+import { TutorNationalIdField } from "@/components/admissions/national-id-field";
 import { FormField } from "@/components/admissions/form-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { TUTOR_RELATIONSHIPS } from "@/lib/admissions/constants";
 import type { AdmissionFormValues } from "@/lib/admissions/types";
-import { Briefcase, Hash, Home, Mail, Phone, User, Users } from "lucide-react";
+import { Briefcase, Home, Mail, Phone, User, Users } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
 export function StepTutor() {
@@ -52,9 +53,7 @@ export function StepTutor() {
           <Input id="tutor.lastName" {...register("tutor.lastName")} />
         </FormField>
 
-        <FormField label="Cédula" htmlFor="tutor.nationalId" error={errors.tutor?.nationalId?.message} icon={Hash}>
-          <Input id="tutor.nationalId" placeholder="V-12345678" {...register("tutor.nationalId")} />
-        </FormField>
+        <TutorNationalIdField />
 
         <FormField label="Teléfono" htmlFor="tutor.phone" error={errors.tutor?.phone?.message} icon={Phone}>
           <Input id="tutor.phone" type="tel" {...register("tutor.phone")} />

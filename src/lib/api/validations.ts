@@ -4,7 +4,13 @@ export const createPostSchema = z.object({
   title: z.string().min(3).max(200),
   slug: z.string().min(3).max(200).optional(),
   excerpt: z.string().max(500).optional(),
-  content: z.string().min(1),
+  content: z
+    .string()
+    .min(1)
+    .refine(
+      (value) => value.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim().length > 0,
+      "El contenido no puede estar vacío",
+    ),
   cover_image_url: z.string().url().optional().nullable(),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   tag_ids: z.array(z.string().uuid()).optional(),
@@ -40,6 +46,14 @@ export const updateProfileSchema = z.object({
 export const assignRoleSchema = z.object({
   user_id: z.string().uuid(),
   role: z.enum(["reader", "author", "editor", "admin"]),
+});
+
+export const createStaffUserSchema = z.object({
+  email: z.string().email("Correo inválido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  full_name: z.string().min(2, "El nombre es requerido").max(100),
+  title: z.string().min(2, "El cargo es requerido").max(100),
+  panel: z.enum(["blog", "admisiones"]),
 });
 
 export const paginationSchema = z.object({

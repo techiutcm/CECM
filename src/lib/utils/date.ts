@@ -1,3 +1,18 @@
+export function formatChronologicalDate(value: string | null | undefined) {
+  if (!value?.trim()) return "—";
+
+  const isoMatch = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return `${day}/${month}/${year}`;
+  }
+
+  const displayMatch = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (displayMatch) return value.trim();
+
+  return value;
+}
+
 export function formatDistanceToNow(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();

@@ -5,6 +5,8 @@ import {
   deletePostAction,
   updatePostAction,
 } from "@/app/admin/actions/posts";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { TagSelector } from "@/components/admin/tag-selector";
 import type { Post, PostStatus, Tag } from "@/types/blog";
 import { useRouter } from "next/navigation";
@@ -62,107 +64,108 @@ export function PostForm({ post, tags, isNew = false }: PostFormProps) {
 
   return (
     <form action={handleSubmit} className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="title" className="text-sm font-medium text-zinc-700">
-            Título *
-          </label>
-          <input
-            id="title"
-            name="title"
-            required
-            defaultValue={post?.title}
-            placeholder="Título del artículo"
-            className="h-11 w-full rounded-lg border border-zinc-200 px-3 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+      <div className="grid gap-8 xl:grid-cols-[minmax(280px,320px)_minmax(0,1fr)]">
+        <aside className="space-y-6">
+          <section className="rounded-xl border border-zinc-200 bg-zinc-50/80 p-5">
+            <h2 className="text-sm font-semibold text-zinc-900">Detalles del post</h2>
+            <p className="mt-1 text-xs text-zinc-500">
+              Configura título, portada y publicación desde este panel lateral.
+            </p>
+
+            <div className="mt-5 space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="title" className="text-sm font-medium text-zinc-700">
+                  Título *
+                </label>
+                <input
+                  id="title"
+                  name="title"
+                  required
+                  defaultValue={post?.title}
+                  placeholder="Título del artículo"
+                  className="h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="slug" className="text-sm font-medium text-zinc-700">
+                  Slug (opcional)
+                </label>
+                <input
+                  id="slug"
+                  name="slug"
+                  defaultValue={post?.slug}
+                  placeholder="mi-articulo"
+                  className="h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="excerpt" className="text-sm font-medium text-zinc-700">
+                  Extracto
+                </label>
+                <textarea
+                  id="excerpt"
+                  name="excerpt"
+                  rows={3}
+                  defaultValue={post?.excerpt ?? ""}
+                  placeholder="Breve descripción del artículo"
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="status" className="text-sm font-medium text-zinc-700">
+                  Estado
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  defaultValue={post?.status ?? "draft"}
+                  className="h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                >
+                  {statusOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">Etiquetas</label>
+                <TagSelector
+                  tags={tags}
+                  selectedIds={post?.tags?.map((t) => t.id)}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <ImageUploadField
+              name="cover_image_url"
+              label="Imagen de portada"
+              defaultValue={post?.cover_image_url}
+              helperText="Sube una imagen o pega una URL pública para la portada del artículo."
+            />
+          </section>
+        </aside>
+
+        <main className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-900">Contenido del artículo</h2>
+            <p className="mt-1 text-xs text-zinc-500">
+              Editor visual con formato, enlaces e imágenes insertables en el texto.
+            </p>
+          </div>
+
+          <RichTextEditor
+            name="content"
+            initialContent={post?.content ?? ""}
+            placeholder="Escribe aquí el contenido del artículo..."
           />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="slug" className="text-sm font-medium text-zinc-700">
-            Slug (opcional)
-          </label>
-          <input
-            id="slug"
-            name="slug"
-            defaultValue={post?.slug}
-            placeholder="mi-articulo"
-            className="h-11 w-full rounded-lg border border-zinc-200 px-3 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="excerpt" className="text-sm font-medium text-zinc-700">
-          Extracto
-        </label>
-        <textarea
-          id="excerpt"
-          name="excerpt"
-          rows={2}
-          defaultValue={post?.excerpt ?? ""}
-          placeholder="Breve descripción del artículo"
-          className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="content" className="text-sm font-medium text-zinc-700">
-          Contenido * (Markdown)
-        </label>
-        <textarea
-          id="content"
-          name="content"
-          required
-          rows={14}
-          defaultValue={post?.content}
-          placeholder="# Mi artículo&#10;&#10;Escribe el contenido aquí..."
-          className="w-full rounded-lg border border-zinc-200 px-3 py-2 font-mono text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-zinc-700">Etiquetas</label>
-        <TagSelector
-          tags={tags}
-          selectedIds={post?.tags?.map((t) => t.id)}
-        />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-2">
-          <label
-            htmlFor="cover_image_url"
-            className="text-sm font-medium text-zinc-700"
-          >
-            URL imagen de portada
-          </label>
-          <input
-            id="cover_image_url"
-            name="cover_image_url"
-            type="url"
-            defaultValue={post?.cover_image_url ?? ""}
-            placeholder="https://..."
-            className="h-11 w-full rounded-lg border border-zinc-200 px-3 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="status" className="text-sm font-medium text-zinc-700">
-            Estado
-          </label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={post?.status ?? "draft"}
-            className="h-11 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-          >
-            {statusOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        </main>
       </div>
 
       {error && (

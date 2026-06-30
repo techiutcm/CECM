@@ -1,5 +1,9 @@
 import { ADMISSION_STATUS_LABELS } from "@/lib/admissions/admin/constants";
 import type { AdmissionRow } from "@/lib/admissions/admin/types";
+import { formatAcademicPerformanceDisplay } from "@/lib/admissions/academic-performance";
+import { getPreviousSchoolLabel, getProvenanceLabel } from "@/lib/admissions/provenance";
+import { formatNationalIdDisplay } from "@/lib/admissions/national-id";
+import { formatAdmissionShift } from "@/lib/admissions/shifts";
 import { createServiceClient } from "@/lib/supabase/service";
 import { formatDate, formatDateTime } from "@/lib/utils/date";
 
@@ -14,8 +18,9 @@ export interface AdmissionExportRow {
   emailRepresentante: string;
   estado: string;
   fechaSolicitud: string;
+  procedencia: string;
   escuelaProcedencia: string;
-  promedio: string;
+  rendimientoAcademico: string;
   repitioGrado: string;
 }
 
@@ -31,18 +36,21 @@ export async function getAdmissionsForExport(): Promise<AdmissionExportRow[]> {
   return ((data ?? []) as AdmissionRow[]).map((row) => ({
     id: row.id,
     estudiante: `${row.student_data.firstName} ${row.student_data.lastName}`.trim(),
-    cedula: row.student_data.nationalId,
+    cedula: formatNationalIdDisplay(
+      row.student_data.nationalIdPrefix ?? "V",
+      row.student_data.nationalIdNumber ?? "",
+      row.student_data.nationalId,
+    ),
     grado: row.academic_data.grade || "—",
-    turno: row.academic_data.shift || "—",
+    turno: formatAdmissionShift(row.academic_data.shift),
     representante: `${row.tutor_data.firstName} ${row.tutor_data.lastName}`.trim(),
     telefonoRepresentante: row.tutor_data.phone,
     emailRepresentante: row.tutor_data.email,
     estado: ADMISSION_STATUS_LABELS[row.status],
     fechaSolicitud: formatDateTime(row.created_at),
-    escuelaProcedencia: row.academic_data.sameSchool
-      ? "Mismo colegio"
-      : row.academic_data.previousSchool || "—",
-    promedio: row.academic_data.previousAverage || "—",
+    procedencia: getProvenanceLabel(row.academic_data),
+    escuelaProcedencia: getPreviousSchoolLabel(row.academic_data),
+    rendimientoAcademico: formatAcademicPerformanceDisplay(row.academic_data),
     repitioGrado: row.academic_data.repeatedGrade === "yes" ? "Sí" : "No",
   }));
 }

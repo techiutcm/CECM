@@ -15,7 +15,7 @@ export default async function NewPostPage() {
         description="Crea un nuevo artículo para el blog"
       />
       <div className="flex-1 p-8">
-        <div className="mx-auto max-w-3xl rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
+        <div className="mx-auto max-w-6xl rounded-xl border border-zinc-200 bg-white p-6 shadow-sm lg:p-8">
           <PostForm isNew tags={tags} />
         </div>
       </div>

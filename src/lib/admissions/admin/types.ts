@@ -30,7 +30,7 @@ export interface AdmissionListItem {
   shift: string;
   representativeName: string;
   representativePhone: string;
-  sameSchool: boolean;
+  provenance: string;
   previousSchool?: string;
   createdAt: string;
   updatedAt: string;
@@ -117,7 +117,7 @@ export interface AdmissionFilters {
   status?: AdmissionStatus | "all";
   grade?: string;
   shift?: string;
-  sameSchool?: boolean | "all";
+  provenance?: string | "all";
   dateFrom?: string;
   dateTo?: string;
 }

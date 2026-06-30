@@ -1,6 +1,5 @@
 import { Pagination } from "@/components/blog/pagination";
 import { PostCard } from "@/components/blog/post-card";
-import { SiteHeader } from "@/components/blog/site-header";
 import { TagFilter } from "@/components/blog/tag-filter";
 import { getPublishedPosts, getPublishedTags } from "@/lib/blog/public";
 
@@ -29,9 +28,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     : "Artículos recientes";
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <SiteHeader />
-
+    <>
       <section className="border-b border-zinc-200 bg-gradient-to-b from-emerald-50/50 to-zinc-50">
         <div className="mx-auto max-w-5xl px-6 py-16 md:py-20">
           <p className="text-sm font-medium uppercase tracking-wider text-emerald-700">
@@ -74,6 +71,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }

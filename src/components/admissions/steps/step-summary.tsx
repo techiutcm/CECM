@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { formatAcademicPerformanceDisplay } from "@/lib/admissions/academic-performance";
+import { formatBirthDateDisplay } from "@/lib/admissions/birth-date";
 import { DOCUMENT_DEFINITIONS } from "@/lib/admissions/constants";
+import { formatNationalIdDisplay } from "@/lib/admissions/national-id";
+import { formatAdmissionShift } from "@/lib/admissions/shifts";
+import { getProvenanceLabel } from "@/lib/admissions/provenance";
 import type { AdmissionFormValues } from "@/lib/admissions/types";
 import { CheckCircle2, Pencil } from "lucide-react";
 import { useFormContext } from "react-hook-form";
@@ -84,31 +89,37 @@ export function StepSummary({ onEditStep, readOnly = false }: StepSummaryProps) 
         <SummarySection title="Datos Personales" emoji="👤" readOnly={readOnly} onEdit={() => onEditStep(1)}>
           <SummaryItem label="Nombres" value={values.personal.firstName} />
           <SummaryItem label="Apellidos" value={values.personal.lastName} />
-          <SummaryItem label="Cédula" value={values.personal.nationalId} />
-          <SummaryItem label="Fecha de Nacimiento" value={values.personal.birthDate} />
+          <SummaryItem
+            label="Cédula"
+            value={formatNationalIdDisplay(
+              values.personal.nationalIdPrefix,
+              values.personal.nationalIdNumber,
+              values.personal.nationalId,
+            )}
+          />
+          <SummaryItem
+            label="Fecha de Nacimiento"
+            value={formatBirthDateDisplay(values.personal.birthDate)}
+          />
           <SummaryItem label="Teléfono" value={values.personal.phone} />
           <SummaryItem label="Dirección" value={values.personal.address} />
         </SummarySection>
 
         <SummarySection title="Datos Académicos" emoji="📚" readOnly={readOnly} onEdit={() => onEditStep(2)}>
           <SummaryItem label="Grado a cursar" value={values.academic.grade} />
-          <SummaryItem label="Turno" value={values.academic.shift} />
+          <SummaryItem label="Turno" value={formatAdmissionShift(values.academic.shift)} />
           <SummaryItem
-            label="Mismo colegio"
-            value={values.academic.sameSchool ? "Sí" : "No"}
+            label="Procedencia"
+            value={getProvenanceLabel(values.academic)}
           />
-          {!values.academic.sameSchool && (
-            <>
-              <SummaryItem
-                label="Escuela de Procedencia"
-                value={values.academic.previousSchool ?? ""}
-              />
-              <SummaryItem
-                label="Promedio de Procedencia"
-                value={values.academic.previousAverage ?? ""}
-              />
-            </>
-          )}
+          <SummaryItem
+            label="Escuela de Procedencia"
+            value={values.academic.previousSchool ?? ""}
+          />
+          <SummaryItem
+            label="Rendimiento Académico"
+            value={formatAcademicPerformanceDisplay(values.academic)}
+          />
           <SummaryItem label="¿Repitió algún grado?" value={repeatedGradeLabel} />
         </SummarySection>
 
@@ -121,7 +132,14 @@ export function StepSummary({ onEditStep, readOnly = false }: StepSummaryProps) 
           <SummaryItem label="Relación" value={values.tutor.relationship} />
           <SummaryItem label="Nombres" value={values.tutor.firstName} />
           <SummaryItem label="Apellidos" value={values.tutor.lastName} />
-          <SummaryItem label="Cédula" value={values.tutor.nationalId} />
+          <SummaryItem
+            label="Cédula"
+            value={formatNationalIdDisplay(
+              values.tutor.nationalIdPrefix,
+              values.tutor.nationalIdNumber,
+              values.tutor.nationalId,
+            )}
+          />
           <SummaryItem label="Teléfono" value={values.tutor.phone} />
           <SummaryItem label="Correo" value={values.tutor.email} />
           <SummaryItem label="Ocupación" value={values.tutor.occupation} />

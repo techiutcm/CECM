@@ -3,8 +3,10 @@
 import { AdmissionStatusBadge } from "@/components/admin/admisiones/admission-status-badge";
 import {
   ADMISSION_GRADES,
-  ADMISSION_SHIFTS,
+  ADMISSION_PROVENANCE_LABELS,
+  ADMISSION_PROVENANCE_VALUES,
 } from "@/lib/admissions/constants";
+import { ADMISSION_SHIFT_OPTIONS } from "@/lib/admissions/shifts";
 import {
   ADMISSION_STATUSES,
   ADMISSION_STATUS_LABELS,
@@ -21,7 +23,7 @@ interface AdmissionsTableProps {
     status: string;
     grade: string;
     shift: string;
-    sameSchool: string;
+    provenance: string;
     dateFrom: string;
     dateTo: string;
   };
@@ -36,7 +38,7 @@ export function AdmissionsTable({
 }: AdmissionsTableProps) {
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 rounded-2xl border border-[#083148]/10 bg-white p-4 md:grid-cols-2 xl:grid-cols-6">
+      <div className="grid gap-3 rounded-2xl border border-[#083148]/10 bg-white p-4 md:grid-cols-2 xl:grid-cols-7">
         <input
           value={filters.search}
           onChange={(e) => onFilterChange("search", e.target.value)}
@@ -73,9 +75,21 @@ export function AdmissionsTable({
           className="h-10 rounded-xl border border-[#083148]/10 px-3 text-sm outline-none"
         >
           <option value="all">Todos los turnos</option>
-          {ADMISSION_SHIFTS.map((shift) => (
-            <option key={shift} value={shift}>
-              {shift}
+          {ADMISSION_SHIFT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filters.provenance}
+          onChange={(e) => onFilterChange("provenance", e.target.value)}
+          className="h-10 rounded-xl border border-[#083148]/10 px-3 text-sm outline-none"
+        >
+          <option value="all">Todas las procedencias</option>
+          {ADMISSION_PROVENANCE_VALUES.map((value) => (
+            <option key={value} value={value}>
+              {ADMISSION_PROVENANCE_LABELS[value]}
             </option>
           ))}
         </select>

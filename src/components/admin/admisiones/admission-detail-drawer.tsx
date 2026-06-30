@@ -2,10 +2,12 @@
 
 import {
   addAdmissionNoteAction,
+  rejectAdmissionAction,
   scheduleInterviewAction,
   updateAdmissionStatusAction,
   verifyDocumentsAction,
 } from "@/app/admin/actions/admissions";
+import { EmailPreviewPanel } from "@/components/admin/email-preview-panel";
 import {
   AdmissionPriorityBadge,
   AdmissionStatusBadge,
@@ -19,11 +21,23 @@ import {
   type AdmissionStatus,
 } from "@/lib/admissions/admin/constants";
 import type { AdmissionDetail } from "@/lib/admissions/admin/types";
+import { formatAcademicPerformanceDisplay } from "@/lib/admissions/academic-performance";
+import { formatBirthDateDisplay } from "@/lib/admissions/birth-date";
+import { formatNationalIdDisplay } from "@/lib/admissions/national-id";
+import { formatAdmissionShift } from "@/lib/admissions/shifts";
+import {
+  getPreviousSchoolLabel,
+  getProvenanceLabel,
+} from "@/lib/admissions/provenance";
+import {
+  buildAdmissionRejectedEmailPreview,
+  buildInterviewEmailPreview,
+} from "@/lib/email/admission-preview";
 import { formatDateTime } from "@/lib/utils/date";
 import { AnimatePresence, motion } from "framer-motion";
 import { Download, FileText, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 interface AdmissionDetailDrawerProps {
   admissionId: string | null;
@@ -56,6 +70,9 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
   const [interviewDate, setInterviewDate] = useState("");
   const [interviewNotes, setInterviewNotes] = useState("");
   const [sendNotification, setSendNotification] = useState(true);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectNote, setRejectNote] = useState("");
+  const [sendRejectNotification, setSendRejectNotification] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -82,6 +99,20 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
+  const interviewEmailPreview = useMemo(() => {
+    if (!detail || !interviewDate || !sendNotification) return null;
+    return buildInterviewEmailPreview(
+      detail,
+      new Date(interviewDate).toISOString(),
+      interviewNotes || undefined,
+    );
+  }, [detail, interviewDate, interviewNotes, sendNotification]);
+
+  const rejectEmailPreview = useMemo(() => {
+    if (!detail || !sendRejectNotification) return null;
+    return buildAdmissionRejectedEmailPreview(detail, rejectNote || undefined);
+  }, [detail, rejectNote, sendRejectNotification]);
+
   async function refreshDetail() {
     if (!admissionId) return;
     const res = await fetch(`/api/admin/admissions/${admissionId}`);
@@ -104,7 +135,7 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
       }
       if (result.notificationMessage) {
         toast({
-          title: "Entrevista agendada",
+          title: "Acción completada",
           description: result.notificationMessage,
           variant: result.notificationMessage.includes("no configurada") ? "default" : "success",
         });
@@ -172,11 +203,15 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
                         size="sm"
                         variant={action.id === "reject" ? "destructive" : "outline"}
                         disabled={isPending}
-                        onClick={() =>
+                        onClick={() => {
+                          if (action.id === "reject") {
+                            setRejectModalOpen(true);
+                            return;
+                          }
                           runAction(() =>
                             updateAdmissionStatusAction(detail.id, action.targetStatus),
-                          )
-                        }
+                          );
+                        }}
                       >
                         {action.label}
                       </Button>
@@ -194,24 +229,37 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
                   <DetailSection title="Datos del Estudiante">
                     <DetailItem label="Nombre" value={detail.student.firstName} />
                     <DetailItem label="Apellido" value={detail.student.lastName} />
-                    <DetailItem label="Cédula" value={detail.student.nationalId} />
-                    <DetailItem label="Fecha de nacimiento" value={detail.student.birthDate} />
+                    <DetailItem
+                      label="Cédula"
+                      value={formatNationalIdDisplay(
+                        detail.student.nationalIdPrefix ?? "V",
+                        detail.student.nationalIdNumber ?? "",
+                        detail.student.nationalId,
+                      )}
+                    />
+                    <DetailItem
+                      label="Fecha de nacimiento"
+                      value={formatBirthDateDisplay(detail.student.birthDate)}
+                    />
                     <DetailItem label="Teléfono" value={detail.student.phone} />
                     <DetailItem label="Dirección" value={detail.student.address} />
                   </DetailSection>
 
                   <DetailSection title="Datos Académicos">
                     <DetailItem label="Grado solicitado" value={detail.academic.grade} />
-                    <DetailItem label="Turno" value={detail.academic.shift} />
+                    <DetailItem label="Turno" value={formatAdmissionShift(detail.academic.shift)} />
+                    <DetailItem
+                      label="Procedencia"
+                      value={getProvenanceLabel(detail.academic)}
+                    />
                     <DetailItem
                       label="Escuela de procedencia"
-                      value={
-                        detail.academic.sameSchool
-                          ? "Mismo colegio"
-                          : detail.academic.previousSchool ?? "—"
-                      }
+                      value={getPreviousSchoolLabel(detail.academic)}
                     />
-                    <DetailItem label="Promedio" value={detail.academic.previousAverage ?? "—"} />
+                    <DetailItem
+                      label="Rendimiento académico"
+                      value={formatAcademicPerformanceDisplay(detail.academic)}
+                    />
                     <DetailItem
                       label="Repitió grado"
                       value={detail.academic.repeatedGrade === "yes" ? "Sí" : "No"}
@@ -221,6 +269,14 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
                   <DetailSection title="Datos del Representante">
                     <DetailItem label="Relación" value={detail.tutor.relationship} />
                     <DetailItem label="Nombre" value={`${detail.tutor.firstName} ${detail.tutor.lastName}`} />
+                    <DetailItem
+                      label="Cédula"
+                      value={formatNationalIdDisplay(
+                        detail.tutor.nationalIdPrefix ?? "V",
+                        detail.tutor.nationalIdNumber ?? "",
+                        detail.tutor.nationalId,
+                      )}
+                    />
                     <DetailItem label="Teléfono" value={detail.tutor.phone} />
                     <DetailItem label="Correo" value={detail.tutor.email} />
                     <DetailItem label="Ocupación" value={detail.tutor.occupation} />
@@ -302,6 +358,22 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
                         />
                         Enviar notificación por correo al representante
                       </label>
+
+                      {sendNotification && !detail.tutor.email?.trim() && (
+                        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                          El representante no tiene correo registrado. No se podrá enviar la notificación.
+                        </p>
+                      )}
+
+                      {interviewEmailPreview && (
+                        <EmailPreviewPanel
+                          to={interviewEmailPreview.to}
+                          subject={interviewEmailPreview.subject}
+                          html={interviewEmailPreview.html}
+                          title="Correo de entrevista agendada"
+                        />
+                      )}
+
                       <Button
                         type="button"
                         disabled={!interviewDate || isPending}
@@ -397,6 +469,109 @@ export function AdmissionDetailDrawer({ admissionId, onClose }: AdmissionDetailD
                   <Image src={previewUrl} alt="Vista previa" fill className="object-contain" unoptimized />
                 </div>
               )}
+            </div>
+          )}
+
+          {rejectModalOpen && detail && (
+            <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setRejectModalOpen(false)}
+                className="absolute inset-0 bg-[#06121a]/55 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                className="relative z-10 flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[#083148]/10 bg-white shadow-2xl"
+              >
+                <div className="flex items-center justify-between border-b border-[#083148]/10 px-5 py-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-[#083148]/45">Confirmar rechazo</p>
+                    <h3 className="text-lg font-bold text-[#083148]">{detail.studentName}</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRejectModalOpen(false)}
+                    className="rounded-xl border border-[#083148]/10 p-2 text-[#083148]/60"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="flex-1 space-y-4 overflow-y-auto p-5">
+                  <p className="text-sm text-[#083148]/70">
+                    La solicitud pasará al estado <strong>Rechazado</strong>. Puede incluir un motivo y
+                    notificar al representante por correo.
+                  </p>
+
+                  <textarea
+                    value={rejectNote}
+                    onChange={(e) => setRejectNote(e.target.value)}
+                    rows={3}
+                    placeholder="Motivo u observaciones para el representante (opcional)..."
+                    className="w-full rounded-xl border border-[#083148]/10 px-3 py-2 text-sm outline-none focus:border-[#5B3E8C]/40"
+                  />
+
+                  <label className="flex items-center gap-2 text-sm text-[#083148]/75">
+                    <input
+                      type="checkbox"
+                      checked={sendRejectNotification}
+                      onChange={(e) => setSendRejectNotification(e.target.checked)}
+                      className="h-4 w-4 rounded border-[#083148]/20"
+                    />
+                    Enviar notificación por correo al representante
+                  </label>
+
+                  {sendRejectNotification && !detail.tutor.email?.trim() && (
+                    <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                      El representante no tiene correo registrado. No se podrá enviar la notificación.
+                    </p>
+                  )}
+
+                  {rejectEmailPreview && (
+                    <EmailPreviewPanel
+                      to={rejectEmailPreview.to}
+                      subject={rejectEmailPreview.subject}
+                      html={rejectEmailPreview.html}
+                      title="Correo de solicitud rechazada"
+                    />
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-[#083148]/10 px-5 py-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setRejectModalOpen(false)}
+                    disabled={isPending}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={isPending}
+                    onClick={() =>
+                      runAction(async () => {
+                        const result = await rejectAdmissionAction({
+                          admissionId: detail.id,
+                          note: rejectNote || undefined,
+                          sendNotification: sendRejectNotification,
+                        });
+                        if ("success" in result && result.success) {
+                          setRejectModalOpen(false);
+                          setRejectNote("");
+                        }
+                        return result;
+                      })
+                    }
+                  >
+                    Confirmar rechazo
+                  </Button>
+                </div>
+              </motion.div>
             </div>
           )}
         </>
