@@ -1,7 +1,6 @@
 import { CommentForm } from "@/components/blog/comment-form";
 import { CommentList } from "@/components/blog/comment-list";
 import { PostContent } from "@/components/blog/post-content";
-import { getAuthUser } from "@/lib/api/auth";
 import {
   buildBlogListUrl,
   getApprovedComments,
@@ -40,10 +39,7 @@ function formatDate(date: string | null) {
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const [post, user] = await Promise.all([
-    getPublishedPostBySlug(slug),
-    getAuthUser(),
-  ]);
+  const post = await getPublishedPostBySlug(slug);
 
   if (!post) notFound();
 
@@ -116,7 +112,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <h3 className="mb-4 text-sm font-semibold text-zinc-700">
               Deja un comentario
             </h3>
-            <CommentForm postId={post.id} isAuthenticated={!!user} />
+            <CommentForm postId={post.id} />
           </div>
         </div>
       </section>

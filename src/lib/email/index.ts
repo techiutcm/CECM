@@ -8,6 +8,7 @@ export type { EmailPreviewData } from "@/lib/email/admission-preview";
 export { escapeHtml } from "@/lib/email/escape";
 export {
   sendAdmissionRejectedEmail,
+  sendCommentPendingModerationEmail,
   sendInterviewScheduledEmail,
   getResendFromEmail,
   isResendConfigured,
@@ -28,6 +29,7 @@ export {
 export { renderInterviewScheduledEmail } from "@/lib/email/templates/interview-scheduled";
 export type {
   AdmissionRejectedEmailPayload,
+  CommentPendingEmailPayload,
   EmailSendResult,
   InterviewEmailPayload,
 } from "@/lib/email/types";

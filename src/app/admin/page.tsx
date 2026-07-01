@@ -43,18 +43,38 @@ export default async function AdminDashboardPage() {
       />
       <div className="flex-1 space-y-8 p-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map((card) => (
-            <Link
-              key={card.label}
-              href={card.href}
-              className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-emerald-200 hover:shadow-md"
-            >
-              <p className="text-sm text-zinc-500">{card.label}</p>
-              <p className="mt-2 text-3xl font-bold text-zinc-900">
-                {card.value}
-              </p>
-            </Link>
-          ))}
+          {cards.map((card) => {
+            const isPendingComments = card.label === "Comentarios pendientes";
+            const hasPending = isPendingComments && card.value > 0;
+
+            return (
+              <Link
+                key={card.label}
+                href={card.href}
+                className={`rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md ${
+                  hasPending
+                    ? "border-amber-300 bg-amber-50/40 hover:border-amber-400"
+                    : "border-zinc-200 hover:border-emerald-200"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm text-zinc-500">{card.label}</p>
+                  {hasPending && (
+                    <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                      Revisar
+                    </span>
+                  )}
+                </div>
+                <p
+                  className={`mt-2 text-3xl font-bold ${
+                    hasPending ? "text-amber-700" : "text-zinc-900"
+                  }`}
+                >
+                  {card.value}
+                </p>
+              </Link>
+            );
+          })}
         </div>
 
         <div className="rounded-xl border border-zinc-200 bg-white shadow-sm">

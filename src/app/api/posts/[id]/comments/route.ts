@@ -1,7 +1,8 @@
-import { requireAuth } from "@/lib/api/auth";
 import { jsonCreated, jsonError, jsonOk } from "@/lib/api/response";
-import { createCommentSchema, paginationSchema } from "@/lib/api/validations";
-import { createClient } from "@/lib/supabase/server";
+import { guestCommentSchema, paginationSchema } from "@/lib/api/validations";
+import { getBlogModeratorEmails } from "@/lib/blog/moderator-emails";
+import { sendCommentPendingModerationEmail } from "@/lib/email/resend";
+import { createServiceClient } from "@/lib/supabase/service";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -28,11 +29,12 @@ export async function GET(request: Request, context: RouteContext) {
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data, error, count } = await supabase
     .from("comments")
     .select(COMMENT_SELECT, { count: "exact" })
     .eq("post_id", postId)
+    .eq("status", "approved")
     .is("parent_id", null)
     .order("created_at", { ascending: true })
     .range(from, to);
@@ -48,6 +50,7 @@ export async function GET(request: Request, context: RouteContext) {
       .from("comments")
       .select(COMMENT_SELECT)
       .in("parent_id", parentIds)
+      .eq("status", "approved")
       .order("created_at", { ascending: true });
     replies = replyData ?? [];
   }
@@ -77,20 +80,18 @@ export async function GET(request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
-  const auth = await requireAuth();
-  if (!auth.user) return jsonError(auth.error!, auth.status);
-
   const { id: postId } = await context.params;
   const body = await request.json();
-  const parsed = createCommentSchema.safeParse(body);
+  const parsed = guestCommentSchema.safeParse(body);
+
   if (!parsed.success) {
     return jsonError(parsed.error.issues[0]?.message ?? "Datos inválidos");
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: post } = await supabase
     .from("posts")
-    .select("id, status")
+    .select("id, slug, title, status, author_id")
     .eq("id", postId)
     .maybeSingle();
 
@@ -99,11 +100,15 @@ export async function POST(request: Request, context: RouteContext) {
     return jsonError("Solo se pueden comentar posts publicados", 400);
   }
 
+  const guestEmail = parsed.data.guest_email?.trim() || null;
+
   const { data, error } = await supabase
     .from("comments")
     .insert({
       post_id: postId,
-      user_id: auth.user.id,
+      user_id: null,
+      guest_name: parsed.data.guest_name,
+      guest_email: guestEmail,
       content: parsed.data.content,
       parent_id: parsed.data.parent_id ?? null,
       status: "pending",
@@ -112,5 +117,20 @@ export async function POST(request: Request, context: RouteContext) {
     .single();
 
   if (error) return jsonError(error.message, 500);
+
+  try {
+    const moderatorEmails = await getBlogModeratorEmails(post.author_id);
+    await sendCommentPendingModerationEmail({
+      to: moderatorEmails,
+      guestName: parsed.data.guest_name,
+      guestEmail,
+      postTitle: post.title,
+      postSlug: post.slug,
+      commentPreview: parsed.data.content,
+    });
+  } catch {
+    // El comentario ya quedó guardado.
+  }
+
   return jsonCreated(data);
 }

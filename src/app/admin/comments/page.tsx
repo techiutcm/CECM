@@ -1,6 +1,7 @@
 import { AdminHeader } from "@/components/admin/admin-header";
 import { CommentActions } from "@/components/admin/comment-actions";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { getCommentAuthorName } from "@/lib/blog/comment-author";
 import { requireAdminAccess } from "@/lib/admin/guard";
 import { getPendingComments } from "@/lib/admin/queries";
 
@@ -21,7 +22,8 @@ export default async function AdminCommentsPage() {
             const post = comment.post as
               | { id: string; title: string; slug: string }
               | undefined;
-            const author = comment.author;
+            const authorName = getCommentAuthorName(comment);
+            const guestEmail = comment.guest_email?.trim();
 
             return (
               <article
@@ -43,7 +45,8 @@ export default async function AdminCommentsPage() {
                     </div>
                     <p className="mt-3 text-zinc-800">{comment.content}</p>
                     <p className="mt-3 text-xs text-zinc-400">
-                      {author?.full_name ?? author?.username ?? "Anónimo"} ·{" "}
+                      {authorName}
+                      {guestEmail ? ` · ${guestEmail}` : ""} ·{" "}
                       {new Date(comment.created_at).toLocaleString("es-VE")}
                     </p>
                   </div>

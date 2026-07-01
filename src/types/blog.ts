@@ -58,7 +58,9 @@ export interface PostMedia {
 export interface Comment {
   id: string;
   post_id: string;
-  user_id: string;
+  user_id: string | null;
+  guest_name: string | null;
+  guest_email: string | null;
   parent_id: string | null;
   content: string;
   status: CommentStatus;

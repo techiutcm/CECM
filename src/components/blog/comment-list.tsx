@@ -1,3 +1,4 @@
+import { getCommentAuthorName } from "@/lib/blog/comment-author";
 import type { Comment } from "@/types/blog";
 
 interface CommentListProps {
@@ -5,8 +6,7 @@ interface CommentListProps {
 }
 
 function CommentItem({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) {
-  const authorName =
-    comment.author?.full_name ?? comment.author?.username ?? "Usuario";
+  const authorName = getCommentAuthorName(comment);
 
   return (
     <div className={isReply ? "ml-8 border-l-2 border-zinc-100 pl-4" : ""}>

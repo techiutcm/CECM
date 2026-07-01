@@ -7,16 +7,25 @@ import { usePathname } from "next/navigation";
 
 interface AdminShellProps {
   roles: BlogRole[];
+  pendingCommentsCount?: number;
   children: React.ReactNode;
 }
 
-export function AdminShell({ roles, children }: AdminShellProps) {
+export function AdminShell({
+  roles,
+  pendingCommentsCount = 0,
+  children,
+}: AdminShellProps) {
   const pathname = usePathname();
   const isAdmissions = pathname.startsWith("/admin/admisiones");
 
   return (
     <div className={`flex min-h-screen ${isAdmissions ? "bg-[#f4f6fa]" : "bg-zinc-50"}`}>
-      {isAdmissions ? <AdmissionsSidebar roles={roles} /> : <Sidebar roles={roles} />}
+      {isAdmissions ? (
+        <AdmissionsSidebar roles={roles} />
+      ) : (
+        <Sidebar roles={roles} pendingCommentsCount={pendingCommentsCount} />
+      )}
       <div className="flex min-w-0 flex-1 flex-col">{children}</div>
     </div>
   );

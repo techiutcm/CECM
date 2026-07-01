@@ -55,6 +55,17 @@ export async function getAdminPostById(
   return post;
 }
 
+export async function getPendingCommentsCount(): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("comments")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
 export async function getAdminStats(user: AuthUser) {
   const supabase = await createClient();
 
@@ -63,14 +74,11 @@ export async function getAdminStats(user: AuthUser) {
     postsQuery = postsQuery.eq("author_id", user.id);
   }
 
-  const [postsResult, commentsResult] = await Promise.all([
+  const [postsResult, pendingComments] = await Promise.all([
     postsQuery,
     hasRole(user.roles, "editor")
-      ? supabase
-          .from("comments")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "pending")
-      : Promise.resolve({ count: 0 }),
+      ? getPendingCommentsCount()
+      : Promise.resolve(0),
   ]);
 
   const posts = postsResult.data ?? [];
@@ -79,7 +87,7 @@ export async function getAdminStats(user: AuthUser) {
     published: posts.filter((p) => p.status === "published").length,
     draft: posts.filter((p) => p.status === "draft").length,
     archived: posts.filter((p) => p.status === "archived").length,
-    pendingComments: commentsResult.count ?? 0,
+    pendingComments,
   };
 
   return stats;

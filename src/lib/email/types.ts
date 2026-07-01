@@ -15,6 +15,15 @@ export interface AdmissionRejectedEmailPayload {
   reason?: string;
 }
 
+export interface CommentPendingEmailPayload {
+  to: string[];
+  guestName: string;
+  guestEmail?: string | null;
+  postTitle: string;
+  postSlug: string;
+  commentPreview: string;
+}
+
 export interface EmailSendResult {
   sent: boolean;
   skipped?: boolean;

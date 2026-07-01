@@ -36,6 +36,7 @@ const navItems: NavItem[] = [
 
 interface SidebarProps {
   roles: BlogRole[];
+  pendingCommentsCount?: number;
 }
 
 function canAccess(roles: BlogRole[], minRole?: BlogRole) {
@@ -49,23 +50,40 @@ function canAccess(roles: BlogRole[], minRole?: BlogRole) {
   return roles.some((role) => hierarchy[minRole].includes(role));
 }
 
+function NavCountBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  const label = count > 99 ? "99+" : String(count);
+
+  return (
+    <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+      {label}
+    </span>
+  );
+}
+
 function NavLink({
   item,
   isActive,
   collapsed,
+  badgeCount = 0,
 }: {
   item: NavItem;
   isActive: boolean;
   collapsed: boolean;
+  badgeCount?: number;
 }) {
   const Icon = item.icon;
+  const showBadge = badgeCount > 0 && item.href === "/admin/comments";
 
   return (
     <Link
       href={item.href}
       title={collapsed ? item.label : undefined}
-      aria-label={item.label}
-      className={`flex items-center rounded-lg text-sm font-medium transition ${
+      aria-label={
+        showBadge ? `${item.label}, ${badgeCount} pendientes` : item.label
+      }
+      className={`relative flex items-center rounded-lg text-sm font-medium transition ${
         collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5"
       } ${
         isActive
@@ -74,12 +92,23 @@ function NavLink({
       }`}
     >
       <Icon className="h-4 w-4 shrink-0" />
-      {!collapsed && <span className="truncate">{item.label}</span>}
+      {!collapsed && (
+        <>
+          <span className="truncate">{item.label}</span>
+          {showBadge && <NavCountBadge count={badgeCount} />}
+        </>
+      )}
+      {collapsed && showBadge && (
+        <span
+          className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-amber-500"
+          aria-hidden
+        />
+      )}
     </Link>
   );
 }
 
-export function Sidebar({ roles }: SidebarProps) {
+export function Sidebar({ roles, pendingCommentsCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -173,6 +202,7 @@ export function Sidebar({ roles }: SidebarProps) {
                 item={item}
                 isActive={isActive}
                 collapsed={collapsed}
+                badgeCount={pendingCommentsCount}
               />
             );
           })}

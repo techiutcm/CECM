@@ -34,7 +34,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     .maybeSingle();
 
   const postAuthorId = post?.author_id;
-  const isOwner = existing.user_id === auth.user.id;
+  const isOwner = existing.user_id !== null && existing.user_id === auth.user.id;
   const isModerator =
     auth.user.roles.includes("editor") ||
     auth.user.roles.includes("admin") ||
@@ -76,7 +76,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
 
   if (!existing) return jsonError("Comentario no encontrado", 404);
 
-  const isOwner = existing.user_id === auth.user.id;
+  const isOwner = existing.user_id !== null && existing.user_id === auth.user.id;
   const isModerator =
     auth.user.roles.includes("editor") || auth.user.roles.includes("admin");
 

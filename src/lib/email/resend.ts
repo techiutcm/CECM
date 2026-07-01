@@ -1,7 +1,9 @@
-import { renderInterviewScheduledEmail } from "@/lib/email/templates/interview-scheduled";
 import { renderAdmissionRejectedEmail } from "@/lib/email/templates/admission-rejected";
+import { renderCommentPendingEmail } from "@/lib/email/templates/comment-pending";
+import { renderInterviewScheduledEmail } from "@/lib/email/templates/interview-scheduled";
 import type {
   AdmissionRejectedEmailPayload,
+  CommentPendingEmailPayload,
   EmailSendResult,
   InterviewEmailPayload,
 } from "@/lib/email/types";
@@ -9,6 +11,7 @@ import { Resend } from "resend";
 
 export type {
   AdmissionRejectedEmailPayload,
+  CommentPendingEmailPayload,
   EmailSendResult,
   InterviewEmailPayload,
 } from "@/lib/email/types";
@@ -83,6 +86,44 @@ export async function sendAdmissionRejectedEmail(
     from: `Admisiones CECM <${getResendFromEmail()}>`,
     to: payload.to,
     subject: `Actualización de admisión — ${payload.studentName}`,
+    html,
+  });
+
+  if (error) {
+    return { sent: false, reason: error.message };
+  }
+
+  return { sent: true, id: data?.id };
+}
+
+export async function sendCommentPendingModerationEmail(
+  payload: CommentPendingEmailPayload,
+): Promise<EmailSendResult> {
+  const recipients = payload.to.map((email) => email.trim()).filter(Boolean);
+
+  if (!isResendConfigured()) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: "RESEND_API_KEY no configurada. El correo quedará pendiente.",
+    };
+  }
+
+  if (recipients.length === 0) {
+    return {
+      sent: false,
+      skipped: true,
+      reason: "No hay moderadores con correo configurado.",
+    };
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const html = renderCommentPendingEmail(payload);
+
+  const { data, error } = await resend.emails.send({
+    from: `Blog CECM <${getResendFromEmail()}>`,
+    to: recipients,
+    subject: `Comentario pendiente — ${payload.postTitle}`,
     html,
   });
 

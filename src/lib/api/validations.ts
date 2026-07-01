@@ -23,6 +23,26 @@ export const createCommentSchema = z.object({
   parent_id: z.string().uuid().optional().nullable(),
 });
 
+export const guestCommentSchema = z.object({
+  guest_name: z
+    .string()
+    .trim()
+    .min(2, "Ingresa tu nombre")
+    .max(80, "Máximo 80 caracteres"),
+  guest_email: z
+    .string()
+    .trim()
+    .email("Correo electrónico inválido")
+    .optional()
+    .or(z.literal("")),
+  content: z
+    .string()
+    .trim()
+    .min(1, "Escribe un comentario")
+    .max(2000, "Máximo 2000 caracteres"),
+  parent_id: z.string().uuid().optional().nullable(),
+});
+
 export const updateCommentSchema = z.object({
   content: z.string().min(1).max(2000).optional(),
   status: z.enum(["pending", "approved", "rejected"]).optional(),
