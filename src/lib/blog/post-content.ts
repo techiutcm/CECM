@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 const ALLOWED_TAGS = [
   "p",
@@ -22,12 +22,18 @@ const ALLOWED_TAGS = [
   "pre",
 ];
 
-const ALLOWED_ATTR = ["href", "src", "alt", "title", "target", "rel", "class"];
-
 export function sanitizePostHtml(html: string) {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
+  return sanitizeHtml(html, {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: {
+      "*": ["class"],
+      a: ["href", "title", "target", "rel", "class"],
+      img: ["src", "alt", "title", "class"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: {
+      img: ["http", "https"],
+    },
   });
 }
 
