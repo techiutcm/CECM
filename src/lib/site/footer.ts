@@ -22,6 +22,7 @@ const activeRoutes = new Set([
   "/nosotros/historia-y-sedes",
   "/nosotros/infraestructura-resiliencia",
   "/admisiones",
+  "/pagos",
   "/blog",
 ]);
 
@@ -94,6 +95,7 @@ export function getFooterNavigationGroups(): FooterNavGroup[] {
       links: [
         ...getLinks("Inicio"),
         ...getLinks("Admisiones"),
+        ...getLinks("Pagos"),
         ...getLinks("Recursos"),
       ],
     },

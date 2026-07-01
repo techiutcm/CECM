@@ -27,6 +27,37 @@ export const ecosystemContent = {
   titleAccent: "proyectos reales",
   cards: [
     {
+      id: "maternal",
+      title: "Cuidado Maternal",
+      description:
+        "Cuidamos el primer capítulo de cada historia. En un espacio cálido y seguro, acompañamos a niños y niñas desde el primer año con rutinas amorosas, estimulación temprana y juego guiado que despierta la confianza, el lenguaje y la curiosidad por explorar. Aquí se sientan las bases del aprendizaje con sentido.",
+      cta: { label: "Explora Cuidado Maternal" },
+      expanded: {
+        title: "Cuidado Maternal",
+        intro:
+          "Acompañamiento integral para los más pequeños: vínculos afectivos seguros, estimulación temprana y primeras experiencias de descubrimiento en un entorno diseñado para su bienestar y crecimiento.",
+        items: [
+          {
+            id: "vinculo-rutinas",
+            title: "Vínculo y rutinas seguras",
+            description:
+              "Cuidado personalizado, afecto y rutinas que generan confianza, autonomía y bases emocionales sólidas desde los primeros meses.",
+            label: "Desde el 1er año",
+            icon: "trophy",
+            iconBg: "#F5B025",
+          },
+          {
+            id: "estimulacion-juego",
+            title: "Estimulación y juego guiado",
+            description:
+              "Actividades lúdicas y sensoriales que activan el lenguaje, la motricidad fina y la fascinación por descubrir el mundo.",
+            icon: "crayons",
+            iconBg: "#0A2533",
+          },
+        ],
+      },
+    },
+    {
       id: "preescolar",
       title: "Educación Inicial (Preescolar)",
       description:

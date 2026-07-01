@@ -11,7 +11,7 @@ export function EcosystemCardExpanded({
   onClose,
 }: EcosystemCardExpandedProps) {
   return (
-    <div className="flex h-full flex-col rounded-sm bg-[#FFF8E8]/92 p-5 shadow-[inset_0_0_0_1px_rgba(10,37,51,0.12)] backdrop-blur-[2px] sm:p-7 lg:p-8">
+    <div className="flex h-full flex-col rounded-xl bg-[#FFF8E8]/92 p-5 shadow-[inset_0_0_0_1px_rgba(10,37,51,0.12)] backdrop-blur-[2px] sm:rounded-2xl sm:p-7 lg:p-8">
       <header className="border-b border-[#0A2533]/15 pb-6 sm:pb-7">
         <h3 className="font-bebas text-4xl uppercase leading-[0.95] tracking-wide text-[#0A2533] sm:text-5xl lg:text-6xl">
           {content.title}

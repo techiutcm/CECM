@@ -6,6 +6,7 @@ interface NosotrosPageHeroProps {
   title: string;
   description: string;
   imageSrc?: string;
+  imageClassName?: string;
 }
 
 export function NosotrosPageHero({
@@ -13,6 +14,7 @@ export function NosotrosPageHero({
   title,
   description,
   imageSrc = "/transformation-section-bg.jpg",
+  imageClassName = "object-cover object-center",
 }: NosotrosPageHeroProps) {
   return (
     <section className="relative min-h-[22rem] overflow-hidden sm:min-h-[26rem]">
@@ -23,7 +25,7 @@ export function NosotrosPageHero({
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center"
+          className={imageClassName}
           aria-hidden
         />
         <div

@@ -72,6 +72,10 @@ export const mainNavigation: NavDropdown[] = [
     highlight: true,
   },
   {
+    label: "Pagos",
+    href: "/pagos",
+  },
+  {
     label: "Contacto",
     href: "/contacto",
     hidden: true,
