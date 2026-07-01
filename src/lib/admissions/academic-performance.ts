@@ -1,4 +1,5 @@
 import type { AdmissionFormValues, AdmissionGrade } from "@/lib/admissions/types";
+import { isMaternalGrade } from "@/lib/admissions/maternal-care";
 
 export const PRIMARY_GRADES = [
   "Preescolar",
@@ -48,6 +49,10 @@ export function validateAcademicPerformance(
   grade: string,
   value: string,
 ): string | null {
+  if (isMaternalGrade(grade)) {
+    return null;
+  }
+
   const scale = getPerformanceScale(grade);
   const trimmed = value.trim();
 

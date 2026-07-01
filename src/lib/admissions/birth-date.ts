@@ -1,6 +1,9 @@
 /** Edad mínima para admisión (Preescolar y niveles superiores). */
 export const BIRTH_DATE_MIN_AGE_YEARS = 2;
 
+/** Edad mínima para cuidado maternal. */
+export const BIRTH_DATE_MATERNAL_MIN_AGE_YEARS = 1;
+
 /** Edad máxima razonable para un aspirante escolar. */
 export const BIRTH_DATE_MAX_AGE_YEARS = 25;
 
@@ -78,18 +81,30 @@ function getAgeInYears(birth: DateParts, reference = new Date()) {
   return age;
 }
 
-export function getBirthDateBounds(reference = new Date()) {
+export interface BirthDateValidationOptions {
+  maternalCare?: boolean;
+}
+
+export function getBirthDateMinAgeYears(options: BirthDateValidationOptions = {}) {
+  return options.maternalCare
+    ? BIRTH_DATE_MATERNAL_MIN_AGE_YEARS
+    : BIRTH_DATE_MIN_AGE_YEARS;
+}
+
+export function getBirthDateBounds(
+  reference = new Date(),
+  options: BirthDateValidationOptions = {},
+) {
+  const minAgeYears = getBirthDateMinAgeYears(options);
   const today = startOfLocalDay(reference);
 
-  const maxDate = today;
   const minDate = new Date(
     today.getFullYear() - BIRTH_DATE_MAX_AGE_YEARS,
     today.getMonth(),
     today.getDate(),
   );
-
-  const youngestDate = new Date(
-    today.getFullYear() - BIRTH_DATE_MIN_AGE_YEARS,
+  const maxDate = new Date(
+    today.getFullYear() - minAgeYears,
     today.getMonth(),
     today.getDate(),
   );
@@ -110,11 +125,7 @@ export function getBirthDateBounds(reference = new Date()) {
     maxIso: toIso(maxParts),
     minDisplay: isoToDisplay(toIso(minParts)),
     maxDisplay: isoToDisplay(toIso(maxParts)),
-    youngestDisplay: isoToDisplay(toIso({
-      year: youngestDate.getFullYear(),
-      month: youngestDate.getMonth() + 1,
-      day: youngestDate.getDate(),
-    })),
+    minAgeYears,
   };
 }
 
@@ -160,7 +171,10 @@ export function formatBirthDateInput(value: string) {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 }
 
-export function validateBirthDateIso(value: string): string | null {
+export function validateBirthDateIso(
+  value: string,
+  options: BirthDateValidationOptions = {},
+): string | null {
   const trimmed = value.trim();
   if (!trimmed) return "Ingresa la fecha de nacimiento";
 
@@ -169,11 +183,14 @@ export function validateBirthDateIso(value: string): string | null {
     return `Usa el formato ${BIRTH_DATE_DISPLAY_FORMAT} con una fecha válida`;
   }
 
-  const bounds = getBirthDateBounds();
+  const bounds = getBirthDateBounds(new Date(), options);
   const iso = toIso(parts);
+  const minAgeYears = bounds.minAgeYears;
 
   if (iso > bounds.maxIso) {
-    return "La fecha no puede ser futura";
+    return options.maternalCare
+      ? "El niño o la niña debe tener al menos 1 año de edad"
+      : `El aspirante debe tener al menos ${BIRTH_DATE_MIN_AGE_YEARS} años`;
   }
 
   if (iso < bounds.minIso) {
@@ -181,13 +198,19 @@ export function validateBirthDateIso(value: string): string | null {
   }
 
   const age = getAgeInYears(parts);
-  if (age < BIRTH_DATE_MIN_AGE_YEARS) {
-    return `El aspirante debe tener al menos ${BIRTH_DATE_MIN_AGE_YEARS} años`;
+  if (age < minAgeYears) {
+    return options.maternalCare
+      ? "El niño o la niña debe tener al menos 1 año de edad"
+      : `El aspirante debe tener al menos ${BIRTH_DATE_MIN_AGE_YEARS} años`;
   }
 
   return null;
 }
 
-export function getBirthDateHelperText() {
+export function getBirthDateHelperText(options: BirthDateValidationOptions = {}) {
+  if (options.maternalCare) {
+    return `Formato ${BIRTH_DATE_DISPLAY_FORMAT}. Edad mínima para cuidado maternal: 1 año.`;
+  }
+
   return `Formato ${BIRTH_DATE_DISPLAY_FORMAT}.`;
 }

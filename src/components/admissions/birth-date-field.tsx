@@ -8,6 +8,7 @@ import {
   getBirthDateHelperText,
   isoToDisplay,
 } from "@/lib/admissions/birth-date";
+import { isMaternalCareEnabled } from "@/lib/admissions/maternal-care";
 import type { AdmissionFormValues } from "@/lib/admissions/types";
 import { cn } from "@/lib/utils";
 import { Calendar } from "lucide-react";
@@ -20,10 +21,13 @@ interface BirthDateFieldProps {
 }
 
 export function BirthDateField({ id = "personal.birthDate", className }: BirthDateFieldProps) {
-  const { setValue, control } = useFormContext<AdmissionFormValues>();
+  const { setValue, control, trigger } = useFormContext<AdmissionFormValues>();
   const calendarInputRef = useRef<HTMLInputElement>(null);
   const calendarId = useId();
-  const bounds = getBirthDateBounds();
+
+  const maternalCare = useWatch({ control, name: "personal.maternalCare" });
+  const isMaternalCare = isMaternalCareEnabled(maternalCare);
+  const bounds = getBirthDateBounds(new Date(), { maternalCare: isMaternalCare });
 
   const isoValue = useWatch({ control, name: "personal.birthDate" });
   const [displayValue, setDisplayValue] = useState(() => isoToDisplay(isoValue ?? ""));
@@ -31,6 +35,12 @@ export function BirthDateField({ id = "personal.birthDate", className }: BirthDa
   useEffect(() => {
     setDisplayValue(isoToDisplay(isoValue ?? ""));
   }, [isoValue]);
+
+  useEffect(() => {
+    if (isoValue) {
+      void trigger("personal.birthDate");
+    }
+  }, [isMaternalCare, isoValue, trigger]);
 
   function syncFromDisplay(nextDisplay: string) {
     setDisplayValue(nextDisplay);
@@ -107,7 +117,7 @@ export function BirthDateField({ id = "personal.birthDate", className }: BirthDa
       </div>
 
       <p id={`${id}-helper`} className="font-montserrat text-xs text-[#083148]/55">
-        {getBirthDateHelperText()}
+        {getBirthDateHelperText({ maternalCare: isMaternalCare })}
       </p>
     </div>
   );

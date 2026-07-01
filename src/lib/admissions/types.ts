@@ -5,6 +5,7 @@ import type {
   NATIONAL_ID_PREFIXES,
   TUTOR_RELATIONSHIPS,
 } from "@/lib/admissions/constants";
+import type { MaternalCareChoice } from "@/lib/admissions/maternal-care";
 
 export type AdmissionGrade = (typeof ADMISSION_GRADES)[number];
 export type AdmissionShift = (typeof ADMISSION_SHIFTS)[number];
@@ -24,6 +25,7 @@ export interface AdmissionFormValues {
   personal: {
     firstName: string;
     lastName: string;
+    maternalCare: MaternalCareChoice | "";
     nationalIdPrefix: NationalIdPrefix;
     nationalIdNumber: string;
     nationalId?: string;

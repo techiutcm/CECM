@@ -1,3 +1,4 @@
+import { isMaternalCareEnabled, isMaternalGrade } from "@/lib/admissions/maternal-care";
 import { normalizeAdmissionShift } from "@/lib/admissions/shifts";
 import {
   normalizeAcademicPerformance,
@@ -50,23 +51,37 @@ export const personalStepSchema = z
   .object({
     firstName: nameField,
     lastName: nameField,
+    maternalCare: z
+      .string()
+      .min(1, "Selecciona una opción")
+      .pipe(z.enum(["yes", "no"])),
     nationalIdPrefix: nationalIdPrefixField,
     nationalIdNumber: z.string().trim(),
     nationalId: z.string().trim().optional(),
     birthDate: z
       .string()
       .min(1, "Ingresa la fecha de nacimiento")
-      .transform((value) => normalizeBirthDateToIso(value) ?? value)
-      .superRefine((value, ctx) => {
-        const message = validateBirthDateIso(value);
-        if (message) {
-          ctx.addIssue({ code: "custom", message });
-        }
-      }),
+      .transform((value) => normalizeBirthDateToIso(value) ?? value),
     phone: phoneField,
     address: z.string().trim().min(8, "Ingresa la dirección completa").max(200),
   })
   .superRefine((data, ctx) => {
+    const birthMessage = validateBirthDateIso(data.birthDate, {
+      maternalCare: isMaternalCareEnabled(data.maternalCare),
+    });
+
+    if (birthMessage) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["birthDate"],
+        message: birthMessage,
+      });
+    }
+
+    if (isMaternalCareEnabled(data.maternalCare)) {
+      return;
+    }
+
     const message = validateStudentNationalId("", data.nationalIdPrefix, data.nationalIdNumber);
     if (message) {
       ctx.addIssue({
@@ -78,7 +93,9 @@ export const personalStepSchema = z
   })
   .transform((data) => ({
     ...data,
-    nationalId: formatNationalId(data.nationalIdPrefix, data.nationalIdNumber),
+    nationalId: isMaternalCareEnabled(data.maternalCare)
+      ? ""
+      : formatNationalId(data.nationalIdPrefix, data.nationalIdNumber),
   }));
 
 export const academicStepSchema = z
@@ -91,18 +108,24 @@ export const academicStepSchema = z
       .string()
       .min(1, "Selecciona el turno")
       .pipe(z.enum(ADMISSION_SHIFTS)),
-    provenance: z
-      .string()
-      .min(1, "Selecciona la procedencia")
-      .pipe(z.enum(ADMISSION_PROVENANCE_VALUES)),
+    provenance: z.string().trim().optional(),
     previousSchool: z.string().trim().optional(),
     academicPerformance: z.string().trim().optional(),
-    repeatedGrade: z
-      .string()
-      .min(1, "Selecciona una opción")
-      .pipe(z.enum(["yes", "no"])),
+    repeatedGrade: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
+    if (isMaternalGrade(data.grade)) {
+      return;
+    }
+
+    if (!data.provenance || !ADMISSION_PROVENANCE_VALUES.includes(data.provenance as (typeof ADMISSION_PROVENANCE_VALUES)[number])) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["provenance"],
+        message: "Selecciona la procedencia",
+      });
+    }
+
     if (!data.previousSchool?.trim()) {
       ctx.addIssue({
         code: "custom",
@@ -122,8 +145,27 @@ export const academicStepSchema = z
         message: performanceError,
       });
     }
+
+    if (data.repeatedGrade !== "yes" && data.repeatedGrade !== "no") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["repeatedGrade"],
+        message: "Selecciona una opción",
+      });
+    }
   })
   .transform((data) => {
+    if (isMaternalGrade(data.grade)) {
+      return {
+        ...data,
+        shift: normalizeAdmissionShift(data.shift) || data.shift,
+        provenance: data.provenance || "",
+        previousSchool: "",
+        academicPerformance: "",
+        repeatedGrade: "no" as const,
+      };
+    }
+
     const raw =
       data.academicPerformance?.trim() ||
       (data as { previousAverage?: string }).previousAverage?.trim() ||
@@ -212,6 +254,27 @@ export const admissionSubmitSchema = z
     documents: documentsStepSchema,
   })
   .superRefine((data, ctx) => {
+    if (isMaternalCareEnabled(data.personal.maternalCare) || isMaternalGrade(data.academic.grade)) {
+      const birthMessage = validateBirthDateIso(data.personal.birthDate, { maternalCare: true });
+      if (birthMessage) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["personal", "birthDate"],
+          message: birthMessage,
+        });
+      }
+      return;
+    }
+
+    const birthMessage = validateBirthDateIso(data.personal.birthDate);
+    if (birthMessage) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["personal", "birthDate"],
+        message: birthMessage,
+      });
+    }
+
     const message = validateStudentNationalId(
       data.academic.grade,
       data.personal.nationalIdPrefix,
@@ -241,6 +304,7 @@ export function getDefaultAdmissionValues(): AdmissionFormValues {
     personal: {
       firstName: "",
       lastName: "",
+      maternalCare: "",
       nationalIdPrefix: "V",
       nationalIdNumber: "",
       nationalId: "",

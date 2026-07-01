@@ -3,6 +3,7 @@ export const ADMISSION_SESSION_KEY = "cecm-admission-session-v1";
 export const ADMISSION_TOTAL_STEPS = 5;
 
 export const ADMISSION_GRADES = [
+  "Materno",
   "Preescolar",
   "1er grado",
   "2do grado",
@@ -76,6 +77,7 @@ export const ADMISSION_STEP_FIELDS = {
   1: [
     "personal.firstName",
     "personal.lastName",
+    "personal.maternalCare",
     "personal.nationalIdPrefix",
     "personal.nationalIdNumber",
     "personal.birthDate",

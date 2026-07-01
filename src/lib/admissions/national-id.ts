@@ -4,8 +4,9 @@ import type { AdmissionGrade, NationalIdPrefix } from "@/lib/admissions/types";
 export { NATIONAL_ID_PREFIXES };
 export type { NationalIdPrefix };
 
-/** Preescolar hasta 5to grado: cédula opcional o provisional. */
+/** Materno y Preescolar hasta 5to grado: cédula opcional o provisional. */
 export const GRADES_WITH_OPTIONAL_STUDENT_NATIONAL_ID = [
+  "Materno",
   "Preescolar",
   "1er grado",
   "2do grado",

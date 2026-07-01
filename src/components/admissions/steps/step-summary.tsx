@@ -7,6 +7,11 @@ import { DOCUMENT_DEFINITIONS } from "@/lib/admissions/constants";
 import { formatNationalIdDisplay } from "@/lib/admissions/national-id";
 import { formatAdmissionShift } from "@/lib/admissions/shifts";
 import { getProvenanceLabel } from "@/lib/admissions/provenance";
+import {
+  getAcademicStepTitle,
+  isMaternalAdmission,
+  shouldHideStudentNationalId,
+} from "@/lib/admissions/maternal-care";
 import type { AdmissionFormValues } from "@/lib/admissions/types";
 import { CheckCircle2, Pencil } from "lucide-react";
 import { useFormContext } from "react-hook-form";
@@ -74,6 +79,17 @@ export function StepSummary({ onEditStep, readOnly = false }: StepSummaryProps) 
         ? "No"
         : "—";
 
+  const maternalCareLabel =
+    values.personal.maternalCare === "yes"
+      ? "Sí"
+      : values.personal.maternalCare === "no"
+        ? "No"
+        : "—";
+
+  const hideStudentNationalId = shouldHideStudentNationalId(values.personal.maternalCare);
+  const hideAcademicDetails = isMaternalAdmission(values);
+  const academicSectionTitle = getAcademicStepTitle(values.personal.maternalCare);
+
   return (
     <div className="space-y-6">
       <header>
@@ -89,14 +105,17 @@ export function StepSummary({ onEditStep, readOnly = false }: StepSummaryProps) 
         <SummarySection title="Datos Personales" emoji="👤" readOnly={readOnly} onEdit={() => onEditStep(1)}>
           <SummaryItem label="Nombres" value={values.personal.firstName} />
           <SummaryItem label="Apellidos" value={values.personal.lastName} />
-          <SummaryItem
-            label="Cédula"
-            value={formatNationalIdDisplay(
-              values.personal.nationalIdPrefix,
-              values.personal.nationalIdNumber,
-              values.personal.nationalId,
-            )}
-          />
+          <SummaryItem label="Cuidado Maternal" value={maternalCareLabel} />
+          {!hideStudentNationalId && (
+            <SummaryItem
+              label="Cédula"
+              value={formatNationalIdDisplay(
+                values.personal.nationalIdPrefix,
+                values.personal.nationalIdNumber,
+                values.personal.nationalId,
+              )}
+            />
+          )}
           <SummaryItem
             label="Fecha de Nacimiento"
             value={formatBirthDateDisplay(values.personal.birthDate)}
@@ -105,22 +124,26 @@ export function StepSummary({ onEditStep, readOnly = false }: StepSummaryProps) 
           <SummaryItem label="Dirección" value={values.personal.address} />
         </SummarySection>
 
-        <SummarySection title="Datos Académicos" emoji="📚" readOnly={readOnly} onEdit={() => onEditStep(2)}>
+        <SummarySection title={academicSectionTitle} emoji="📚" readOnly={readOnly} onEdit={() => onEditStep(2)}>
           <SummaryItem label="Grado a cursar" value={values.academic.grade} />
           <SummaryItem label="Turno" value={formatAdmissionShift(values.academic.shift)} />
-          <SummaryItem
-            label="Procedencia"
-            value={getProvenanceLabel(values.academic)}
-          />
-          <SummaryItem
-            label="Escuela de Procedencia"
-            value={values.academic.previousSchool ?? ""}
-          />
-          <SummaryItem
-            label="Rendimiento Académico"
-            value={formatAcademicPerformanceDisplay(values.academic)}
-          />
-          <SummaryItem label="¿Repitió algún grado?" value={repeatedGradeLabel} />
+          {!hideAcademicDetails && (
+            <>
+              <SummaryItem
+                label="Procedencia"
+                value={getProvenanceLabel(values.academic)}
+              />
+              <SummaryItem
+                label="Escuela de Procedencia"
+                value={values.academic.previousSchool ?? ""}
+              />
+              <SummaryItem
+                label="Rendimiento Académico"
+                value={formatAcademicPerformanceDisplay(values.academic)}
+              />
+              <SummaryItem label="¿Repitió algún grado?" value={repeatedGradeLabel} />
+            </>
+          )}
         </SummarySection>
 
         <SummarySection

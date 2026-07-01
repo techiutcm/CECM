@@ -20,6 +20,7 @@ interface FormSelectFieldProps {
   error?: string;
   icon?: LucideIcon;
   className?: string;
+  disabled?: boolean;
 }
 
 function normalizeOptions(options: readonly FormSelectOption[] | readonly string[]) {
@@ -37,6 +38,7 @@ export function FormSelectField({
   error,
   icon,
   className,
+  disabled = false,
 }: FormSelectFieldProps) {
   const { control } = useFormContext<AdmissionFormValues>();
   const normalizedOptions = normalizeOptions(options);
@@ -49,6 +51,7 @@ export function FormSelectField({
         render={({ field }) => (
           <Select
             id={id}
+            disabled={disabled}
             value={typeof field.value === "string" ? field.value : ""}
             onChange={(event) => field.onChange(event.target.value)}
             onBlur={field.onBlur}

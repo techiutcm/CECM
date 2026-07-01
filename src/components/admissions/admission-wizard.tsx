@@ -20,6 +20,7 @@ import {
 } from "@/lib/admissions/constants";
 import { normalizeAdmissionShift } from "@/lib/admissions/shifts";
 import type { AdmissionFormValues, AdmissionShift } from "@/lib/admissions/types";
+import { isMaternalAdmission } from "@/lib/admissions/maternal-care";
 import { validateStudentNationalId } from "@/lib/admissions/national-id";
 import {
   admissionStepSchemas,
@@ -125,22 +126,25 @@ export function AdmissionWizard() {
     }
 
     if (currentStep === 2) {
-      const { academic, personal } = form.getValues();
-      const nationalIdError = validateStudentNationalId(
-        academic.grade,
-        personal.nationalIdPrefix,
-        personal.nationalIdNumber,
-      );
+      const values = form.getValues();
+      if (!isMaternalAdmission(values)) {
+        const { academic, personal } = values;
+        const nationalIdError = validateStudentNationalId(
+          academic.grade,
+          personal.nationalIdPrefix,
+          personal.nationalIdNumber,
+        );
 
-      if (nationalIdError) {
-        form.setError("personal.nationalIdNumber", { message: nationalIdError });
-        await form.trigger(["personal.nationalIdPrefix", "personal.nationalIdNumber"] as never);
-        toast({
-          title: "Revisa la cédula del estudiante",
-          description: nationalIdError,
-          variant: "error",
-        });
-        return false;
+        if (nationalIdError) {
+          form.setError("personal.nationalIdNumber", { message: nationalIdError });
+          await form.trigger(["personal.nationalIdPrefix", "personal.nationalIdNumber"] as never);
+          toast({
+            title: "Revisa la cédula del estudiante",
+            description: nationalIdError,
+            variant: "error",
+          });
+          return false;
+        }
       }
     }
 
