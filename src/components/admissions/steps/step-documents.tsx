@@ -37,7 +37,7 @@ export function StepDocuments({ sessionId, isMobile }: StepDocumentsProps) {
           <div>
             <p className="font-montserrat text-sm font-semibold text-[#083148]">Requisitos</p>
             <ul className="font-montserrat mt-2 space-y-1 text-sm text-[#083148]/70">
-              <li>• PDF, JPG o PNG</li>
+              <li>• PDF, JPG, PNG o HEIC</li>
               <li>• Máximo 10MB por archivo</li>
             </ul>
           </div>

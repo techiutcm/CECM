@@ -1,8 +1,9 @@
 import { jsonError, jsonOk } from "@/lib/api/response";
+import { MAX_DOCUMENT_SIZE_BYTES } from "@/lib/admissions/constants";
 import {
-  ALLOWED_DOCUMENT_TYPES,
-  MAX_DOCUMENT_SIZE_BYTES,
-} from "@/lib/admissions/constants";
+  inferDocumentMimeType,
+  isAllowedDocumentFile,
+} from "@/lib/admissions/document-file";
 import { createServiceClient } from "@/lib/supabase/service";
 
 const BUCKET = "admission-documents";
@@ -26,13 +27,15 @@ export async function POST(request: Request) {
       return jsonError("Tipo de documento inválido");
     }
 
-    if (!ALLOWED_DOCUMENT_TYPES.includes(file.type)) {
-      return jsonError("Formato no permitido. Usa PDF, JPG o PNG.");
+    if (!isAllowedDocumentFile(file)) {
+      return jsonError("Formato no permitido. Usa PDF, JPG, PNG o HEIC.");
     }
 
     if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
       return jsonError("El archivo supera el máximo de 10MB.");
     }
+
+    const mimeType = inferDocumentMimeType(file) || file.type || "application/octet-stream";
 
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "bin";
     const safeKey = documentKey.replace(/[^a-zA-Z0-9_-]/g, "");
@@ -43,7 +46,7 @@ export async function POST(request: Request) {
       .from(BUCKET)
       .upload(path, file, {
         upsert: false,
-        contentType: file.type,
+        contentType: mimeType,
       });
 
     if (uploadError) {
@@ -58,7 +61,7 @@ export async function POST(request: Request) {
       url: publicUrl,
       path,
       fileName: file.name,
-      mimeType: file.type,
+      mimeType,
       size: file.size,
     });
   } catch (error) {

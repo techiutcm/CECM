@@ -66,9 +66,10 @@ export const DOCUMENT_DEFINITIONS = [
 export const ALLOWED_DOCUMENT_TYPES = [
   "application/pdf",
   "image/jpeg",
-  "image/jpg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
 ];
 
 export const MAX_DOCUMENT_SIZE_BYTES = 10 * 1024 * 1024;

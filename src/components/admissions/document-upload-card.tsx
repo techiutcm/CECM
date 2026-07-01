@@ -3,14 +3,16 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import {
-  ALLOWED_DOCUMENT_TYPES,
-  MAX_DOCUMENT_SIZE_BYTES,
-} from "@/lib/admissions/constants";
+  DOCUMENT_FILE_ACCEPT,
+  inferDocumentMimeType,
+  isImageDocumentMime,
+  validateDocumentFile,
+} from "@/lib/admissions/document-file";
 import type { UploadedDocument } from "@/lib/admissions/types";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, FileText, ImageIcon, Loader2, Upload, X } from "lucide-react";
+import { Camera, CheckCircle2, FileText, ImageIcon, Loader2, Upload, X } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 
 interface DocumentUploadCardProps {
   label: string;
@@ -38,27 +40,25 @@ export function DocumentUploadCard({
   onChange,
   error,
 }: DocumentUploadCardProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputId = useId();
+  const cameraInputId = useId();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const isImage = value?.mimeType.startsWith("image/");
+  const isImage = value?.mimeType ? isImageDocumentMime(value.mimeType) : false;
 
-  const validateFile = useCallback((file: File) => {
-    if (!ALLOWED_DOCUMENT_TYPES.includes(file.type)) {
-      return "Formato no permitido. Usa PDF, JPG o PNG.";
-    }
-    if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
-      return "El archivo supera el máximo de 10MB.";
-    }
-    return null;
-  }, []);
+  const resetInputs = () => {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+  };
 
   const uploadFile = useCallback(
     async (file: File) => {
-      const validationError = validateFile(file);
+      const validationError = validateDocumentFile(file);
       if (validationError) {
         toast({ title: "Archivo inválido", description: validationError, variant: "error" });
         return;
@@ -66,7 +66,8 @@ export function DocumentUploadCard({
 
       setIsUploading(true);
 
-      if (file.type.startsWith("image/")) {
+      const mimeType = inferDocumentMimeType(file);
+      if (isImageDocumentMime(mimeType)) {
         setPreviewUrl(URL.createObjectURL(file));
       } else {
         setPreviewUrl(null);
@@ -105,9 +106,10 @@ export function DocumentUploadCard({
         });
       } finally {
         setIsUploading(false);
+        resetInputs();
       }
     },
-    [documentKey, label, onChange, sessionId, toast, validateFile],
+    [documentKey, label, onChange, sessionId, toast],
   );
 
   const handleFiles = useCallback(
@@ -121,7 +123,7 @@ export function DocumentUploadCard({
   const handleRemove = () => {
     onChange(undefined);
     setPreviewUrl(null);
-    if (inputRef.current) inputRef.current.value = "";
+    resetInputs();
   };
 
   const displayPreview = previewUrl ?? (isImage ? value?.url : null);
@@ -142,44 +144,50 @@ export function DocumentUploadCard({
         )}
       </div>
 
+      <input
+        ref={fileInputRef}
+        id={fileInputId}
+        type="file"
+        className="sr-only"
+        accept={DOCUMENT_FILE_ACCEPT}
+        onChange={(event) => handleFiles(event.target.files)}
+      />
+
+      {isMobile && (
+        <input
+          ref={cameraInputRef}
+          id={cameraInputId}
+          type="file"
+          className="sr-only"
+          accept="image/*"
+          capture="environment"
+          onChange={(event) => handleFiles(event.target.files)}
+        />
+      )}
+
       <div
-        role="button"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            inputRef.current?.click();
-          }
-        }}
         onDragOver={(event) => {
+          if (isMobile) return;
           event.preventDefault();
           setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={(event) => {
+          if (isMobile) return;
           event.preventDefault();
           setIsDragging(false);
           handleFiles(event.dataTransfer.files);
         }}
-        onClick={() => !isUploading && inputRef.current?.click()}
         className={cn(
           "relative overflow-hidden rounded-2xl border border-dashed p-5 transition-all",
           isDragging
             ? "border-[#083148] bg-[#083148]/5"
-            : "border-[#083148]/20 bg-white/70 hover:border-[#083148]/35 hover:bg-white",
+            : "border-[#083148]/20 bg-white/70",
+          !isMobile && !isUploading && "hover:border-[#083148]/35 hover:bg-white",
           isUploading && "pointer-events-none opacity-80",
           error && "border-[#DB2B2C]/50",
         )}
       >
-        <input
-          ref={inputRef}
-          type="file"
-          className="sr-only"
-          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-          capture={isMobile ? "environment" : undefined}
-          onChange={(event) => handleFiles(event.target.files)}
-        />
-
         {isUploading ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
             <Loader2 className="h-8 w-8 animate-spin text-[#083148]" />
@@ -213,25 +221,26 @@ export function DocumentUploadCard({
                 {value ? formatFileSize(value.size) : ""}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    inputRef.current?.click();
-                  }}
+                <label
+                  htmlFor={fileInputId}
+                  className="inline-flex h-9 cursor-pointer items-center justify-center rounded-xl border border-[#083148]/15 bg-white/80 px-4 text-xs font-semibold text-[#083148] transition hover:bg-white"
                 >
                   Reemplazar
-                </Button>
+                </label>
+                {isMobile && (
+                  <label
+                    htmlFor={cameraInputId}
+                    className="inline-flex h-9 cursor-pointer items-center justify-center gap-1 rounded-xl border border-[#083148]/15 bg-white/80 px-4 text-xs font-semibold text-[#083148] transition hover:bg-white"
+                  >
+                    <Camera className="h-4 w-4" />
+                    Nueva foto
+                  </label>
+                )}
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleRemove();
-                  }}
+                  onClick={handleRemove}
                 >
                   <X className="h-4 w-4" />
                   Quitar
@@ -239,22 +248,48 @@ export function DocumentUploadCard({
               </div>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
+        ) : isMobile ? (
+          <div className="flex flex-col items-center justify-center py-4 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#083148]/8">
-              {isMobile ? (
-                <ImageIcon className="h-6 w-6 text-[#083148]" />
-              ) : (
-                <Upload className="h-6 w-6 text-[#083148]" />
-              )}
+              <ImageIcon className="h-6 w-6 text-[#083148]" />
             </div>
             <p className="font-montserrat mt-3 text-sm font-semibold text-[#083148]">
-              {isMobile ? "Toca para tomar foto o subir archivo" : "Arrastra o haz clic para subir"}
+              Sube tu documento desde el teléfono
             </p>
             <p className="font-montserrat mt-1 text-xs text-[#083148]/60">
-              PDF, JPG o PNG · Máximo 10MB
+              PDF, JPG, PNG o HEIC · Máximo 10MB
             </p>
+            <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+              <label
+                htmlFor={cameraInputId}
+                className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#083148] px-5 text-sm font-semibold text-white shadow-md transition hover:bg-[#0a3d5c] sm:w-auto"
+              >
+                <Camera className="h-4 w-4" />
+                Tomar foto
+              </label>
+              <label
+                htmlFor={fileInputId}
+                className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-[#083148]/15 bg-white/80 px-5 text-sm font-semibold text-[#083148] transition hover:bg-white sm:w-auto"
+              >
+                Elegir archivo
+              </label>
+            </div>
           </div>
+        ) : (
+          <label
+            htmlFor={fileInputId}
+            className="flex cursor-pointer flex-col items-center justify-center py-6 text-center"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#083148]/8">
+              <Upload className="h-6 w-6 text-[#083148]" />
+            </div>
+            <p className="font-montserrat mt-3 text-sm font-semibold text-[#083148]">
+              Arrastra o haz clic para subir
+            </p>
+            <p className="font-montserrat mt-1 text-xs text-[#083148]/60">
+              PDF, JPG, PNG o HEIC · Máximo 10MB
+            </p>
+          </label>
         )}
       </div>
 
