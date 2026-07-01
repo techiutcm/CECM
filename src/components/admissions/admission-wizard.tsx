@@ -13,7 +13,6 @@ import { StepSummary } from "@/components/admissions/steps/step-summary";
 import { StepTutor } from "@/components/admissions/steps/step-tutor";
 import { useToast } from "@/components/ui/toast";
 import { useAdmissionPersistence } from "@/hooks/use-admission-persistence";
-import { useIsMobile } from "@/hooks/use-is-mobile";
 import {
   ADMISSION_STEP_FIELDS,
   ADMISSION_TOTAL_STEPS,
@@ -44,7 +43,6 @@ const fullFormSchema = z.object({
 export function AdmissionWizard() {
   const { draft, isHydrated, persistDraft, clearDraft } = useAdmissionPersistence();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(1);
   const [view, setView] = useState<WizardView>("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -263,7 +261,7 @@ export function AdmissionWizard() {
               {currentStep === 2 && <StepAcademic />}
               {currentStep === 3 && <StepTutor />}
               {currentStep === 4 && (
-                <StepDocuments sessionId={draft.sessionId} isMobile={isMobile} />
+                <StepDocuments sessionId={draft.sessionId} />
               )}
               {currentStep === 5 && (
                 <StepSummary

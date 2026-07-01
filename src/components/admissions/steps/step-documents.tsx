@@ -8,10 +8,9 @@ import { useFormContext } from "react-hook-form";
 
 interface StepDocumentsProps {
   sessionId: string;
-  isMobile: boolean;
 }
 
-export function StepDocuments({ sessionId, isMobile }: StepDocumentsProps) {
+export function StepDocuments({ sessionId }: StepDocumentsProps) {
   const {
     watch,
     setValue,
@@ -61,7 +60,6 @@ export function StepDocuments({ sessionId, isMobile }: StepDocumentsProps) {
             value={documents[definition.key]}
             sessionId={sessionId}
             documentKey={definition.key}
-            isMobile={isMobile}
             error={errors.documents?.[definition.key]?.message}
             onChange={(document) =>
               setValue(`documents.${definition.key}`, document, {

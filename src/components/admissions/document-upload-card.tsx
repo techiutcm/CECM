@@ -20,7 +20,6 @@ interface DocumentUploadCardProps {
   value?: UploadedDocument;
   sessionId: string;
   documentKey: string;
-  isMobile: boolean;
   onChange: (document: UploadedDocument | undefined) => void;
   error?: string;
 }
@@ -36,7 +35,6 @@ export function DocumentUploadCard({
   value,
   sessionId,
   documentKey,
-  isMobile,
   onChange,
   error,
 }: DocumentUploadCardProps) {
@@ -153,27 +151,23 @@ export function DocumentUploadCard({
         onChange={(event) => handleFiles(event.target.files)}
       />
 
-      {isMobile && (
-        <input
-          ref={cameraInputRef}
-          id={cameraInputId}
-          type="file"
-          className="sr-only"
-          accept="image/*"
-          capture="environment"
-          onChange={(event) => handleFiles(event.target.files)}
-        />
-      )}
+      <input
+        ref={cameraInputRef}
+        id={cameraInputId}
+        type="file"
+        className="sr-only"
+        accept="image/*"
+        capture="environment"
+        onChange={(event) => handleFiles(event.target.files)}
+      />
 
       <div
         onDragOver={(event) => {
-          if (isMobile) return;
           event.preventDefault();
           setIsDragging(true);
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={(event) => {
-          if (isMobile) return;
           event.preventDefault();
           setIsDragging(false);
           handleFiles(event.dataTransfer.files);
@@ -183,7 +177,7 @@ export function DocumentUploadCard({
           isDragging
             ? "border-[#083148] bg-[#083148]/5"
             : "border-[#083148]/20 bg-white/70",
-          !isMobile && !isUploading && "hover:border-[#083148]/35 hover:bg-white",
+          !isUploading && "md:hover:border-[#083148]/35 md:hover:bg-white",
           isUploading && "pointer-events-none opacity-80",
           error && "border-[#DB2B2C]/50",
         )}
@@ -223,19 +217,18 @@ export function DocumentUploadCard({
               <div className="mt-3 flex flex-wrap gap-2">
                 <label
                   htmlFor={fileInputId}
-                  className="inline-flex h-9 cursor-pointer items-center justify-center rounded-xl border border-[#083148]/15 bg-white/80 px-4 text-xs font-semibold text-[#083148] transition hover:bg-white"
+                  className="inline-flex h-9 cursor-pointer items-center justify-center gap-1 rounded-xl border border-[#083148]/15 bg-white/80 px-4 text-xs font-semibold text-[#083148] transition hover:bg-white"
                 >
-                  Reemplazar
+                  <Upload className="h-4 w-4" />
+                  Subir archivo
                 </label>
-                {isMobile && (
-                  <label
-                    htmlFor={cameraInputId}
-                    className="inline-flex h-9 cursor-pointer items-center justify-center gap-1 rounded-xl border border-[#083148]/15 bg-white/80 px-4 text-xs font-semibold text-[#083148] transition hover:bg-white"
-                  >
-                    <Camera className="h-4 w-4" />
-                    Nueva foto
-                  </label>
-                )}
+                <label
+                  htmlFor={cameraInputId}
+                  className="inline-flex h-9 cursor-pointer items-center justify-center gap-1 rounded-xl border border-[#083148]/15 bg-white/80 px-4 text-xs font-semibold text-[#083148] transition hover:bg-white md:hidden"
+                >
+                  <Camera className="h-4 w-4" />
+                  Nueva foto
+                </label>
                 <Button
                   type="button"
                   size="sm"
@@ -248,48 +241,51 @@ export function DocumentUploadCard({
               </div>
             </div>
           </div>
-        ) : isMobile ? (
-          <div className="flex flex-col items-center justify-center py-4 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#083148]/8">
-              <ImageIcon className="h-6 w-6 text-[#083148]" />
-            </div>
-            <p className="font-montserrat mt-3 text-sm font-semibold text-[#083148]">
-              Sube tu documento desde el teléfono
-            </p>
-            <p className="font-montserrat mt-1 text-xs text-[#083148]/60">
-              PDF, JPG, PNG o HEIC · Máximo 10MB
-            </p>
-            <div className="mt-4 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-              <label
-                htmlFor={cameraInputId}
-                className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#083148] px-5 text-sm font-semibold text-white shadow-md transition hover:bg-[#0a3d5c] sm:w-auto"
-              >
-                <Camera className="h-4 w-4" />
-                Tomar foto
-              </label>
-              <label
-                htmlFor={fileInputId}
-                className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-xl border border-[#083148]/15 bg-white/80 px-5 text-sm font-semibold text-[#083148] transition hover:bg-white sm:w-auto"
-              >
-                Elegir archivo
-              </label>
-            </div>
-          </div>
         ) : (
-          <label
-            htmlFor={fileInputId}
-            className="flex cursor-pointer flex-col items-center justify-center py-6 text-center"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#083148]/8">
-              <Upload className="h-6 w-6 text-[#083148]" />
+          <>
+            <div className="flex flex-col items-center justify-center py-4 text-center md:hidden">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#083148]/8">
+                <ImageIcon className="h-6 w-6 text-[#083148]" />
+              </div>
+              <p className="font-montserrat mt-3 text-sm font-semibold text-[#083148]">
+                Sube tu documento desde el teléfono
+              </p>
+              <p className="font-montserrat mt-1 text-xs text-[#083148]/60">
+                PDF, JPG, PNG o HEIC · Máximo 10MB
+              </p>
+              <div className="mt-4 grid w-full grid-cols-1 gap-2">
+                <label
+                  htmlFor={cameraInputId}
+                  className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#083148] px-5 text-sm font-semibold text-white shadow-md transition hover:bg-[#0a3d5c]"
+                >
+                  <Camera className="h-4 w-4" />
+                  Tomar foto
+                </label>
+                <label
+                  htmlFor={fileInputId}
+                  className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#083148]/15 bg-white/80 px-5 text-sm font-semibold text-[#083148] transition hover:bg-white"
+                >
+                  <Upload className="h-4 w-4" />
+                  Subir archivo
+                </label>
+              </div>
             </div>
-            <p className="font-montserrat mt-3 text-sm font-semibold text-[#083148]">
-              Arrastra o haz clic para subir
-            </p>
-            <p className="font-montserrat mt-1 text-xs text-[#083148]/60">
-              PDF, JPG, PNG o HEIC · Máximo 10MB
-            </p>
-          </label>
+
+            <label
+              htmlFor={fileInputId}
+              className="hidden cursor-pointer flex-col items-center justify-center py-6 text-center md:flex"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#083148]/8">
+                <Upload className="h-6 w-6 text-[#083148]" />
+              </div>
+              <p className="font-montserrat mt-3 text-sm font-semibold text-[#083148]">
+                Arrastra o haz clic para subir
+              </p>
+              <p className="font-montserrat mt-1 text-xs text-[#083148]/60">
+                PDF, JPG, PNG o HEIC · Máximo 10MB
+              </p>
+            </label>
+          </>
         )}
       </div>
 
