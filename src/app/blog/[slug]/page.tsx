@@ -6,6 +6,7 @@ import {
   getApprovedComments,
   getPublishedPostBySlug,
 } from "@/lib/blog/public";
+import { getPublicAuthorDisplayName } from "@/lib/blog/author-display";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -44,6 +45,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) notFound();
 
   const approvedComments = await getApprovedComments(post.id);
+  const authorName = getPublicAuthorDisplayName(post.author);
 
   return (
     <>
@@ -78,10 +80,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <time dateTime={post.published_at ?? post.created_at}>
               {formatDate(post.published_at ?? post.created_at)}
             </time>
-            {post.author?.full_name && (
+            {authorName && (
               <>
                 <span>·</span>
-                <span>{post.author.full_name}</span>
+                <span>{authorName}</span>
               </>
             )}
           </div>

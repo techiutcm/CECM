@@ -1,4 +1,5 @@
 import { buildBlogListUrl } from "@/lib/blog/public";
+import { getPublicAuthorDisplayName } from "@/lib/blog/author-display";
 import type { Post } from "@/types/blog";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,6 +18,8 @@ function formatDate(date: string | null) {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const authorName = getPublicAuthorDisplayName(post.author);
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-emerald-200 hover:shadow-md">
       <Link href={`/blog/${post.slug}`}>
@@ -43,10 +46,10 @@ export function PostCard({ post }: PostCardProps) {
             <time dateTime={post.published_at ?? post.created_at}>
               {formatDate(post.published_at ?? post.created_at)}
             </time>
-            {post.author?.full_name && (
+            {authorName && (
               <>
                 <span>·</span>
-                <span>{post.author.full_name}</span>
+                <span>{authorName}</span>
               </>
             )}
           </div>

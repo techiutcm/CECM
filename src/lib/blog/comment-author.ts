@@ -1,12 +1,10 @@
 import type { Comment } from "@/types/blog";
+import { getPublicAuthorDisplayName } from "@/lib/blog/author-display";
 
 export function getCommentAuthorName(comment: Comment) {
-  if (comment.author?.full_name?.trim()) {
-    return comment.author.full_name.trim();
-  }
-
-  if (comment.author?.username?.trim()) {
-    return comment.author.username.trim();
+  const registeredName = getPublicAuthorDisplayName(comment.author);
+  if (registeredName) {
+    return registeredName;
   }
 
   if (comment.guest_name?.trim()) {

@@ -1,4 +1,5 @@
 import { POST_SELECT, mapPost } from "@/lib/blog/posts";
+import { sanitizePublicAuthor } from "@/lib/blog/author-display";
 import { createClient } from "@/lib/supabase/server";
 import type { Comment, Post, Tag } from "@/types/blog";
 
@@ -8,6 +9,24 @@ const COMMENT_SELECT = `
 `;
 
 export const POSTS_PER_PAGE = 6;
+
+function sanitizePublicPost(post: Post): Post {
+  return {
+    ...post,
+    author: sanitizePublicAuthor(post.author),
+  };
+}
+
+function sanitizePublicComment(comment: Comment): Comment {
+  const { guest_email: _, ...rest } = comment;
+
+  return {
+    ...rest,
+    guest_email: null,
+    author: sanitizePublicAuthor(comment.author),
+    replies: comment.replies?.map(sanitizePublicComment),
+  };
+}
 
 const POST_SELECT_WITH_TAG_FILTER = `
   *,
@@ -60,8 +79,8 @@ export async function getPublishedPosts(
 
   return {
     items: (data ?? []).map((row) =>
-      mapPost(row as Record<string, unknown>),
-    ) as Post[],
+      sanitizePublicPost(mapPost(row as Record<string, unknown>) as Post),
+    ),
     pagination: {
       page,
       limit,
@@ -102,7 +121,7 @@ export async function getPublishedPostBySlug(slug: string): Promise<Post | null>
   if (error) throw new Error(error.message);
   if (!data) return null;
 
-  return mapPost(data as Record<string, unknown>) as Post;
+  return sanitizePublicPost(mapPost(data as Record<string, unknown>) as Post);
 }
 
 export async function getApprovedComments(postId: string): Promise<Comment[]> {
@@ -139,10 +158,12 @@ export async function getApprovedComments(postId: string): Promise<Comment[]> {
     {},
   );
 
-  return comments.map((comment) => ({
-    ...comment,
-    replies: repliesByParent[comment.id] ?? [],
-  }));
+  return comments.map((comment) =>
+    sanitizePublicComment({
+      ...comment,
+      replies: repliesByParent[comment.id] ?? [],
+    }),
+  );
 }
 
 export function buildBlogListUrl(page?: number, tag?: string) {

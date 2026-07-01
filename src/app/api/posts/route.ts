@@ -9,6 +9,7 @@ import {
   resolveSlug,
   syncPostTags,
 } from "@/lib/blog/posts";
+import { sanitizePublicAuthor } from "@/lib/blog/author-display";
 import { createClient } from "@/lib/supabase/server";
 import type { PostStatus } from "@/types/blog";
 
@@ -43,7 +44,15 @@ export async function GET(request: Request) {
   if (error) return jsonError(error.message, 500);
 
   return jsonOk({
-    items: (data ?? []).map((row) => mapPost(row as Record<string, unknown>)),
+    items: (data ?? []).map((row) => {
+      const post = mapPost(row as Record<string, unknown>) as Record<string, unknown>;
+      return {
+        ...post,
+        author: sanitizePublicAuthor(
+          post.author as { full_name: string | null; username: string | null } | undefined,
+        ),
+      };
+    }),
     pagination: {
       page,
       limit,

@@ -1,6 +1,7 @@
 import { jsonCreated, jsonError, jsonOk } from "@/lib/api/response";
 import { guestCommentSchema, paginationSchema } from "@/lib/api/validations";
 import { getBlogModeratorEmails } from "@/lib/blog/moderator-emails";
+import { sanitizePublicAuthor } from "@/lib/blog/author-display";
 import { sendCommentPendingModerationEmail } from "@/lib/email/resend";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -12,6 +13,18 @@ const COMMENT_SELECT = `
   *,
   author:profiles!comments_user_id_fkey(id, username, full_name, avatar_url)
 `;
+
+function sanitizePublicComment<T extends Record<string, unknown>>(comment: T) {
+  const { guest_email: _, author, ...rest } = comment;
+
+  return {
+    ...rest,
+    guest_email: null,
+    author: sanitizePublicAuthor(
+      author as { full_name: string | null; username: string | null } | null | undefined,
+    ),
+  };
+}
 
 export async function GET(request: Request, context: RouteContext) {
   const { id: postId } = await context.params;
@@ -66,10 +79,12 @@ export async function GET(request: Request, context: RouteContext) {
   );
 
   return jsonOk({
-    items: comments.map((comment) => ({
-      ...comment,
-      replies: repliesByParent[comment.id] ?? [],
-    })),
+    items: comments.map((comment) =>
+      sanitizePublicComment({
+        ...comment,
+        replies: (repliesByParent[comment.id] ?? []).map(sanitizePublicComment),
+      }),
+    ),
     pagination: {
       page,
       limit,

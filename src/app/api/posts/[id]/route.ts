@@ -9,6 +9,7 @@ import {
   resolveSlug,
   syncPostTags,
 } from "@/lib/blog/posts";
+import { sanitizePublicAuthor } from "@/lib/blog/author-display";
 import { createClient } from "@/lib/supabase/server";
 
 interface RouteContext {
@@ -28,7 +29,14 @@ export async function GET(_request: Request, context: RouteContext) {
   if (error) return jsonError(error.message, 500);
   if (!data) return jsonError("Post no encontrado", 404);
 
-  return jsonOk(mapPost(data as Record<string, unknown>));
+  const post = mapPost(data as Record<string, unknown>) as Record<string, unknown>;
+
+  return jsonOk({
+    ...post,
+    author: sanitizePublicAuthor(
+      post.author as { full_name: string | null; username: string | null } | undefined,
+    ),
+  });
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
